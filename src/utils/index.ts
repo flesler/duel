@@ -5,6 +5,10 @@ export function pick<T>(arr: T[]): T | undefined {
 	return arr[Math.floor(Math.random() * arr.length)] as T
 }
 
+export function shuffle<T>(arr: T[]): T[] {
+	return arr.sort(() => Math.random() - 0.5)
+}
+
 export function values(obj: any): any[] {
 	return Object.keys(obj).map(key => obj[key])
 }

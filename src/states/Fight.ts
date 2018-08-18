@@ -15,14 +15,14 @@ export default class extends Phaser.State {
 	public create() {
 		this.world.addChild(new Scene())
 
-		this.player1 = this.createPlayer(1)
+		const chars = utils.shuffle(utils.values(Spritesheets).map(s => s.getName()))
+		this.player1 = this.createPlayer(1, chars[0])
 		this.controller1 = KeyboardController.createPlayer1()
-		this.player2 = this.createPlayer(-1)
+		this.player2 = this.createPlayer(-1, chars[1])
 		this.controller2 = KeyboardController.createPlayer2()
 	}
 
-	private createPlayer(direction: CharDirection): Char {
-		const asset: string = utils.pick(utils.values(Spritesheets)).getName()
+	private createPlayer(direction: CharDirection, asset: string): Char {
 		const player: Char = new Char(asset, direction)
 		player.tile = direction === 1 ? 1 : config.TILES - 2
 		player.y = this.world.height - 30
