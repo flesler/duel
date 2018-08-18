@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es5",
+		"sourceMap": true,
+		"types": [
+			"node"
+		]
+	},
+	"files": [
+		"./src/typings/globals.d.ts",
+		"./src/game.ts",
+		"./node_modules/phaser-ce/typescript/phaser.comments.d.ts"
+	]
+}

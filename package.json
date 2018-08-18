@@ -1,0 +1,39 @@
+{
+  "name": "duel",
+  "productName": "duel",
+  "version": "0.9.0",
+  "private": true,
+  "scripts": {
+    "server": "webpack-dev-server --config webpack.dev.config.js",
+    "dist": "echo-cli 'Building DIST ...' && webpack --config webpack.dist.config.js --progress --colors && echo-cli 'Build Complete ✔'",
+    "lint": "tslint --project tsconfig.json",
+    "fix": "npm run lint -- --fix",
+    "assets": "node ./scripts/generate_assets_data.js",
+    "assets:dev": "node ./scripts/generate_assets_data.js --dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flesler/duel.git"
+  },
+  "author": "Ariel Flesler <https://github.com/flesler>",
+  "devDependencies": {
+    "@types/node": "^8.0.0",
+    "clean-webpack-plugin": "^0.1.16",
+    "commander": "^2.9.0",
+    "copy-webpack-plugin": "^4.0.1",
+    "echo-cli": "^1.0.8",
+    "expose-loader": "^0.7.3",
+    "file-loader": "^0.11.1",
+    "html-webpack-plugin": "^2.28.0",
+    "phaser-ce": "^2.11.0",
+    "shelljs": "^0.7.7",
+    "ts-loader": "^2.0.3",
+    "tslint": "^5.2.0",
+    "tslint-loader": "^3.5.3",
+    "typescript": "^2.3.2",
+    "webfontloader": "^1.6.27",
+    "webpack": "^2.5.1",
+    "webpack-dev-server": "^2.4.5",
+    "webpack-shell-plugin": "^0.5.0"
+  }
+}
