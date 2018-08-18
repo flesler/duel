@@ -13,7 +13,7 @@ export default class KeyboardController implements Controller {
 	}
 
 	public static createPlayer2(): KeyboardController {
-		return new KeyboardController(KeyCode.RIGHT, KeyCode.LEFT, KeyCode.UP, KeyCode.DOWN, KeyCode.SHIFT)
+		return new KeyboardController(KeyCode.RIGHT, KeyCode.LEFT, KeyCode.UP, KeyCode.DOWN, KeyCode.ENTER)
 	}
 
 	constructor(back: number, charge: number, block: number, heal: number, attack: number) {

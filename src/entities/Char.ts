@@ -3,6 +3,7 @@ import * as config from '../config'
 import * as utils from '../utils'
 
 const DEFAULT_FPS = 8
+const SCALE = 1.7
 
 export class Char extends Phaser.Sprite {
 	public readonly direction: CharDirection
@@ -18,7 +19,7 @@ export class Char extends Phaser.Sprite {
 	}
 
 	private init() {
-		this.scale = new Phaser.Point(this.direction * 1.5, 1.5)
+		this.scale = new Phaser.Point(this.direction * SCALE, SCALE)
 		this.anchor.set(0.5, 1)
 		this.smoothed = true
 		this.setAnimations(this)

@@ -3,7 +3,7 @@ import game from '../game'
 import * as utils from '../utils'
 
 const { Color } = Phaser
-const TINTS: number[] = [Color.WHITE, Color.WHITE, Color.RED, Color.VIOLET]
+const TINTS: number[] = [Color.WHITE, Color.WHITE, 0xFF9999, 0xFF99FF]
 
 export default class extends Phaser.Sprite {
 	constructor() {
@@ -20,11 +20,12 @@ export default class extends Phaser.Sprite {
 	}
 
 	private scheduleThunder() {
-		setTimeout(this.thunder, utils.randint(6000, 12000))
+		setTimeout(this.thunder, utils.randint(8000, 15000))
 	}
 
 	private thunder = () => {
-		game.camera.flash(0xFFFFFF, utils.randint(700, 1100), true, 0.8)
+		game.camera.flash(0xFFFFFF, utils.randint(700, 1300), true, 0.8)
+		game.sound.play('thunder' + utils.randint(1, 3))
 		this.scheduleThunder()
 	}
 }

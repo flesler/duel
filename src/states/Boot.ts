@@ -1,5 +1,5 @@
 import * as utils from '../utils'
-import { Atlases, Images, Spritesheets } from '../assets'
+import { Atlases, Images, Spritesheets, Audio } from '../assets'
 import { GameWidth, GameHeight, ScaleMode, MultiTouchSupport } from '../config'
 
 const { PreloadSprites } = Atlases
@@ -8,14 +8,17 @@ const { Background } = Images
 export default class Boot extends Phaser.State {
 	public preload(): void {
 		this.game.load.atlasJSONHash(PreloadSprites.getName(), PreloadSprites.getPNG(), PreloadSprites.getJSONHash())
-		this.game.load.image(Background.getName(), Background.getPNG())
+		for (const img of utils.values(Images)) {
+			this.game.load.image(img.getName(), img.getPNG())
+		}
 
 		for (const sheet of utils.values(Spritesheets)) {
 			this.game.load.spritesheet(sheet.getName(), sheet.getPNG(), sheet.getFrameWidth(), sheet.getFrameHeight(), sheet.getFrameMax(), sheet.getMargin(), sheet.getSpacing())
 		}
-	}
 
-	private loadSheet(sheet: any) {
+		for (const audio of utils.values(Audio)) {
+			this.game.load.audio(audio.getName(), audio.getMP3())
+		}
 	}
 
 	public create(): void {

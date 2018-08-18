@@ -72,7 +72,96 @@ export namespace Atlases {
 }
 
 export namespace Audio {
-	class Empty {}
+	export class Attack1 {
+		static getName(): string { return 'attack1' }
+
+		static getMP3(): string { return require('assets/audio/attack1.mp3') }
+	}
+	export class Attack2 {
+		static getName(): string { return 'attack2' }
+
+		static getMP3(): string { return require('assets/audio/attack2.mp3') }
+	}
+	export class Attack3 {
+		static getName(): string { return 'attack3' }
+
+		static getMP3(): string { return require('assets/audio/attack3.mp3') }
+	}
+	export class Attack4 {
+		static getName(): string { return 'attack4' }
+
+		static getMP3(): string { return require('assets/audio/attack4.mp3') }
+	}
+	export class Attack5 {
+		static getName(): string { return 'attack5' }
+
+		static getMP3(): string { return require('assets/audio/attack5.mp3') }
+	}
+	export class Back {
+		static getName(): string { return 'back' }
+
+		static getMP3(): string { return require('assets/audio/back.mp3') }
+	}
+	export class Die1 {
+		static getName(): string { return 'die1' }
+
+		static getMP3(): string { return require('assets/audio/die1.mp3') }
+	}
+	export class Die2 {
+		static getName(): string { return 'die2' }
+
+		static getMP3(): string { return require('assets/audio/die2.mp3') }
+	}
+	export class Die3 {
+		static getName(): string { return 'die3' }
+
+		static getMP3(): string { return require('assets/audio/die3.mp3') }
+	}
+	export class Hit1 {
+		static getName(): string { return 'hit1' }
+
+		static getMP3(): string { return require('assets/audio/hit1.mp3') }
+	}
+	export class Hit2 {
+		static getName(): string { return 'hit2' }
+
+		static getMP3(): string { return require('assets/audio/hit2.mp3') }
+	}
+	export class Hit3 {
+		static getName(): string { return 'hit3' }
+
+		static getMP3(): string { return require('assets/audio/hit3.mp3') }
+	}
+	export class Ping {
+		static getName(): string { return 'ping' }
+
+		static getMP3(): string { return require('assets/audio/ping.mp3') }
+	}
+	export class Power1 {
+		static getName(): string { return 'power1' }
+
+		static getMP3(): string { return require('assets/audio/power1.mp3') }
+	}
+	export class Power2 {
+		static getName(): string { return 'power2' }
+
+		static getMP3(): string { return require('assets/audio/power2.mp3') }
+	}
+	export class Thunder1 {
+		static getName(): string { return 'thunder1' }
+
+		static getMP3(): string { return require('assets/audio/thunder1.mp3') }
+	}
+	export class Thunder2 {
+		static getName(): string { return 'thunder2' }
+
+		static getMP3(): string { return require('assets/audio/thunder2.mp3') }
+	}
+	export class Thunder3 {
+		static getName(): string { return 'thunder3' }
+
+		static getMP3(): string { return require('assets/audio/thunder3.mp3') }
+	}
 }
 
 export namespace Audiosprites {

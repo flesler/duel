@@ -39,6 +39,7 @@ export default class extends Phaser.State {
 		if (this.tweens.isTweening(player)) {
 			return
 		}
+
 		const enemy: Char = player === this.player1 ? this.player2 : this.player1
 		let state = controller.decide(player, enemy)
 		let target: number
@@ -62,10 +63,22 @@ export default class extends Phaser.State {
 				}
 				break
 			case CharStates.attack:
+				// this.audio('attack', 5)
 				this.shake(false)
+				break
+			case CharStates.dead:
+				// this.audio('die', 3)
+				break
+			case CharStates.heal:
+				// this.audio('power', 2)
 				break
 		}
 		player.state = state
+	}
+
+	private audio(key, max) {
+		this.sound.stopAll()
+		this.sound.play(key + utils.randint(1, max))
 	}
 
 	private shake(horizontal: boolean) {
