@@ -6,7 +6,7 @@ const DEFAULT_FPS = 8
 const SCALE = 1.7
 
 export class Char extends Phaser.Sprite {
-	public readonly direction: CharDirection
+	public direction: CharDirection
 	private _state: State
 	private _tile: number
 	private power: Phaser.Sprite
@@ -31,6 +31,19 @@ export class Char extends Phaser.Sprite {
 
 		this.health = this.maxHealth = config.MAX_HEALTH
 		this.state = CharStates.idle
+	}
+
+	public get isDead(): boolean {
+		return this.health <= 0
+	}
+
+	public hit(dmg: number): boolean {
+		this.health -= dmg
+		return this.isDead
+	}
+
+	public restore(amount: number): void {
+		this.health = Math.min(this.maxHealth, this.health + amount)
 	}
 
 	private setAnimations(sprite: Phaser.Sprite) {
@@ -65,6 +78,14 @@ export class Char extends Phaser.Sprite {
 
 	public get state() {
 		return this._state
+	}
+
+	public face(targetX: number): void {
+		const dir: CharDirection = targetX >= this.x ? 1 : -1
+		if (dir !== this.direction) {
+			this.direction = dir
+			this.scale.x = dir * SCALE
+		}
 	}
 
 	public set state(newState: State) {
