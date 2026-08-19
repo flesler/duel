@@ -10,7 +10,8 @@
     "dist": "echo-cli 'Building DIST ...' && DIST=1 tsup && echo-cli 'Build Complete ✔'",
     "typecheck": "tsc --noEmit",
     "lint": "eslint --cache --cache-strategy content 'src/**/*.ts'",
-    "fix": "npm run lint -- --fix",
+    "lint:fix": "npm run lint -- --fix",
+    "lint:full": "npm run lint:fix && npm run typecheck",
     "assets": "tsx ./scripts/generate_assets_data.ts",
     "assets:dev": "tsx ./scripts/generate_assets_data.ts --dev"
   },
