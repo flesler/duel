@@ -3,7 +3,6 @@ import { Atlases, Images, Spritesheets, Audio } from '../assets'
 import { GameWidth, GameHeight, ScaleMode, MultiTouchSupport } from '../config'
 
 const { PreloadSprites } = Atlases
-const { Background } = Images
 
 export default class Boot extends Phaser.State {
 	public preload(): void {

@@ -88,10 +88,10 @@ export class Char extends Phaser.Sprite {
 }
 
 export interface State {
-	frames: number[]
-	loop?: boolean
-	pick?: boolean
-	power?: boolean
+	frames: number[];
+	loop?: boolean;
+	pick?: boolean;
+	power?: boolean;
 	fps?: number
 }
 

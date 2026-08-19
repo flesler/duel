@@ -1,17 +1,14 @@
-var shell = require('shelljs')
-var fs = require('fs')
-var commander = require('commander')
-var webpack = require('webpack')
-var webpackConfig
+import shell from 'shelljs'
+import fs from 'node:fs'
+import commander from 'commander'
+import env from './env.js'
 
 commander
-	.option('--dev', 'Use webpack.dev.config.js for some values, excluding this will use webpack.dist.config.js (currently only GOOGLE_WEB_FONTS is being used).')
+	.option('--dev', 'Generate asset data for dev (DEBUG=true); omit for production')
 	.parse(process.argv)
 
 if (commander.dev) {
-	webpackConfig = require('../webpack.dev.config.js')
 } else {
-	webpackConfig = require('../webpack.dist.config.js')
 }
 
 function toCamelCase(string) {
@@ -38,9 +35,9 @@ function findExtension(haystack, arr) {
 	})
 }
 
-var gameAssets = {}
+const gameAssets = {}
 
-var loaderTypes = {
+const loaderTypes = {
 	image: {},
 	spritesheet: {},
 	atlas: {},
@@ -54,13 +51,13 @@ var loaderTypes = {
 	misc: {}
 }
 
-var audioExtensions = ['aac', 'ac3', 'caf', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm']
-var imageExtensions = ['bmp', 'gif', 'jpg', 'jpeg', 'png', 'webp']
-var fontExtensions = ['eot', 'otf', 'svg', 'ttf', 'woff', 'woff2']
-var bitmapFontExtensions = ['fnt']
-var jsonExtensions = ['json']
-var textExtensions = ['txt']
-var scriptExtensions = ['js']
+const audioExtensions = ['aac', 'ac3', 'caf', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm']
+const imageExtensions = ['bmp', 'gif', 'jpg', 'jpeg', 'png', 'webp']
+const fontExtensions = ['eot', 'otf', 'svg', 'ttf', 'woff', 'woff2']
+const bitmapFontExtensions = ['fnt']
+const jsonExtensions = ['json']
+const textExtensions = ['txt']
+const scriptExtensions = ['js']
 
 shell.ls('assets/**/*.*').forEach(function (file) {
 	var filePath = file.replace('assets/', '').split('.')
@@ -123,7 +120,7 @@ for (var i in gameAssets) {
 	}
 }
 
-var assetsClassFile = 'src/assets.ts'
+const assetsClassFile = 'src/assets.ts'
 shell.rm('-f', assetsClassFile)
 
 shell.ShellString('/* AUTO GENERATED FILE. DO NOT MODIFY. YOU WILL LOSE YOUR CHANGES ON BUILD. */\n\n').to(assetsClassFile)
@@ -131,7 +128,7 @@ shell.ShellString('/* AUTO GENERATED FILE. DO NOT MODIFY. YOU WILL LOSE YOUR CHA
 // Image
 shell.ShellString('export namespace Images {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.image).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.image) {
 		var key = i.split('/').pop()
@@ -150,7 +147,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Sprite sheet
 shell.ShellString('export namespace Spritesheets {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.spritesheet).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.spritesheet) {
 		var key = i.split('/').pop()
@@ -178,7 +175,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Atlas
 shell.ShellString('export namespace Atlases {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.atlas).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.atlas) {
 		var key = i.split('/').pop()
@@ -244,7 +241,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Audio
 shell.ShellString('export namespace Audio {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.audio).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.audio) {
 		var key = i.split('/').pop()
@@ -263,7 +260,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Audio sprite
 shell.ShellString('export namespace Audiosprites {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.audiosprite).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.audiosprite) {
 		var key = i.split('/').pop()
@@ -305,9 +302,9 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 
 // Google web font
 shell.ShellString('export namespace GoogleWebFonts {').toEnd(assetsClassFile)
-var webFontsToUse = JSON.parse(webpackConfig.plugins[webpackConfig.plugins.findIndex(function(element) { return (element instanceof webpack.DefinePlugin) })].definitions.GOOGLE_WEB_FONTS)
+const webFontsToUse = env.GOOGLE_WEB_FONTS
 if (!webFontsToUse.length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in webFontsToUse) {
 		shell.ShellString('\n	export const ' + toPascalCase(webFontsToUse[i]) + ': string = \'' + webFontsToUse[i] + '\'').toEnd(assetsClassFile)
@@ -318,7 +315,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Custom web font
 shell.ShellString('export namespace CustomWebFonts {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.font).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.font) {
 		shell.ShellString('\n	export class ' + toPascalCase(i) + ' {').toEnd(assetsClassFile)
@@ -340,7 +337,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Bitmap font
 shell.ShellString('export namespace BitmapFonts {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.bitmap_font).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.bitmap_font) {
 		var key = i.split('/').pop()
@@ -359,7 +356,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // JSON
 shell.ShellString('export namespace JSON {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.json).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.json) {
 		var key = i.split('/').pop()
@@ -378,7 +375,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Text
 shell.ShellString('export namespace Text {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.text).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.text) {
 		var key = i.split('/').pop()
@@ -397,7 +394,7 @@ shell.ShellString('\n}\n\n').toEnd(assetsClassFile)
 // Script
 shell.ShellString('export namespace Scripts {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.script).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.script) {
 		var key = i.split('/').pop()
@@ -416,7 +413,7 @@ shell.ShellString('\n}\n').toEnd(assetsClassFile)
 // Misc
 shell.ShellString('export namespace Misc {').toEnd(assetsClassFile)
 if (!Object.keys(loaderTypes.misc).length) {
-	shell.ShellString('\n	class Empty {}').toEnd(assetsClassFile)
+	shell.ShellString('\n	export class Empty {}').toEnd(assetsClassFile)
 } else {
 	for (var i in loaderTypes.misc) {
 		var key = i.split('/').pop()

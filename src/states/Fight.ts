@@ -76,11 +76,6 @@ export default class extends Phaser.State {
 		player.state = state
 	}
 
-	private audio(key, max) {
-		this.sound.stopAll()
-		this.sound.play(key + utils.randint(1, max))
-	}
-
 	private shake(horizontal: boolean) {
 		const dir = horizontal ? Phaser.Camera.SHAKE_HORIZONTAL : Phaser.Camera.SHAKE_BOTH
 		this.camera.shake(0.01, 500, false, dir, true)

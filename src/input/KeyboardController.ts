@@ -1,5 +1,4 @@
 import { Char, State, CharStates } from '../entities/Char'
-import * as config from '../config'
 import game from '../game'
 import Controller from './Controller'
 
@@ -20,7 +19,7 @@ export default class KeyboardController implements Controller {
 		this.keys = game.input.keyboard.addKeys({ back, charge, block, heal, attack })
 	}
 
-	public decide(player: Char, enemy: Char): State {
+	public decide(player: Char, _enemy: Char): State {
 		for (const action of Object.keys(CharStates)) {
 			if (this.keys[action] && this.keys[action].isDown) {
 				return CharStates[action]

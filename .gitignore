@@ -6,7 +6,9 @@ node_modules
 
 # Game
 dist
+public
 builds
+.eslintcache
 
 # OSX
 .DS_Store

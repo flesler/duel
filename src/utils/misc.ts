@@ -12,7 +12,7 @@ import { GameWidth, GameHeight, MaxGameWidth, MaxGameHeight } from '../config'
 
 export enum ScreenOrientation {
 	PORTRAIT,
-	LANDSCAPE
+	LANDSCAPE,
 }
 
 export class ScreenMetrics {

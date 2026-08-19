@@ -165,15 +165,15 @@ export namespace Audio {
 }
 
 export namespace Audiosprites {
-	class Empty {}
+	export class Empty {}
 }
 
 export namespace GoogleWebFonts {
-	class Empty {}
+	export class Empty {}
 }
 
 export namespace CustomWebFonts {
-	class Empty {}
+	export class Empty {}
 }
 
 export namespace BitmapFonts {
@@ -186,16 +186,16 @@ export namespace BitmapFonts {
 }
 
 export namespace JSON {
-	class Empty {}
+	export class Empty {}
 }
 
 export namespace Text {
-	class Empty {}
+	export class Empty {}
 }
 
 export namespace Scripts {
-	class Empty {}
+	export class Empty {}
 }
 export namespace Misc {
-	class Empty {}
+	export class Empty {}
 }

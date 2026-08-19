@@ -1,15 +1,25 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es5",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"target": "ES2020",
+		"lib": ["ES2020", "DOM"],
+		"noEmit": true,
+		"strict": false,
+		"noImplicitAny": false,
+		"strictNullChecks": false,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true,
 		"sourceMap": true,
-		"types": [
-			"node"
-		]
+		"types": ["node"],
+		"baseUrl": ".",
+		"paths": {
+			"assets/*": ["assets/*"]
+		}
 	},
-	"files": [
-		"./src/typings/globals.d.ts",
-		"./src/game.ts",
-		"./node_modules/phaser-ce/typescript/phaser.comments.d.ts"
-	]
+	"include": ["src/**/*.ts", "node_modules/phaser-ce/typescript/phaser.comments.d.ts"]
 }

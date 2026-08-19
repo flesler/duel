@@ -14,7 +14,7 @@ const game = new Phaser.Game({
 	renderer: Phaser.AUTO,
 	parent: '',
 	resolution: Resolution,
-	backgroundColor: Phaser.Color.BLACK
+	backgroundColor: Phaser.Color.BLACK,
 })
 game.forceSingleUpdate = true
 
@@ -36,7 +36,7 @@ window.onload = () => {
 		webFontLoaderOptions = (webFontLoaderOptions || {})
 
 		webFontLoaderOptions.google = {
-			families: webFontsToLoad
+			families: webFontsToLoad,
 		}
 	}
 
@@ -45,7 +45,7 @@ window.onload = () => {
 
 		webFontLoaderOptions.custom = {
 			families: [],
-			urls: []
+			urls: [],
 		}
 
 		for (let font in CustomWebFonts) {
