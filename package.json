@@ -38,5 +38,8 @@
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "webfontloader": "^1.6.28"
+  },
+  "dependencies": {
+    "phaser": "^4.2.1"
   }
 }

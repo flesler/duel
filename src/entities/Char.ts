@@ -1,133 +1,130 @@
+import Phaser from 'phaser'
+import { Spritesheets } from '../assets'
 import game from '../game'
 import * as config from '../config'
-import * as utils from '../utils'
 
-const DEFAULT_FPS = 8
-const SCALE = 1.7
+export enum CharDirection {
+	left = -1, right = 1
+}
 
-export class Char extends Phaser.Sprite {
-	public direction: CharDirection
-	private _state: State
-	private _tile: number
-	private power: Phaser.Sprite
+export const CharStates = {
+	idle: 'idle', back: 'back', charge: 'charge', attack: 'attack', block: 'block', heal: 'heal', hit: 'hit', win: 'win', dead: 'dead'
+}
 
-	constructor(key: string, direction: CharDirection) {
-		super(game, 0, 0, key)
+interface State {
+	frames: number[]
+	loop?: boolean
+	pick?: boolean
+	fps?: number
+	power?: boolean
+}
 
-		this.direction = direction
-		this.init()
+const CHAR_STATES: { [name: string]: State } = {
+	idle: { frames: [1, 2, 3, 4, 3, 2], loop: true, fps: 8 },
+	back: { frames: [7, 8, 9, 10, 9, 8] },
+	charge: { frames: [11, 12, 13, 14], loop: true, fps: 20 },
+	attack: { frames: [15, 16, 17, 18, 19, 20, 21, 22, 23, 24], loop: true, fps: 10 },
+	block: { frames: [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34], loop: true, fps: 20 },
+	heal: { frames: [2, 1], pick: true },
+	hit: { frames: [2, 1], pick: true },
+	win: { frames: [0], loop: true },
+	dead: { frames: [35, 36, 37, 38, 39, 40], fps: 3, power: true },
+	power: { frames: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], fps: 20, power: true }
+}
+
+export class Char extends Phaser.Physics.Arcade.Sprite {
+	public health = config.MAX_HEALTH
+	public tile = 0
+	public cooldownEnd = 0
+	public facing: CharDirection
+
+	protected name: string
+	protected lastAction = 0
+	protected state: State = null
+	protected stateName: string = null
+
+	constructor(name: string, direction: CharDirection) {
+		const sheet = Spritesheets[name]
+		super(game, 100, 100, sheet.getName())
+		game.add.existing(this)
+		this.name = name
+		this.facing = direction
+		this.scale.x = direction
+		game.anims.create(name, {
+			frames: game.textures.generateTextureNames(sheet.getName(), 0, 40),
+			frameRate: 30
+		})
+		this.update()
 	}
 
-	private init() {
-		this.scale = new Phaser.Point(this.direction * SCALE, SCALE)
-		this.anchor.set(0.5, 1)
-		this.smoothed = true
-		this.setAnimations(this)
-
-		this.power = new Phaser.Sprite(game, 0, 0, this.key as string)
-		this.power.anchor = this.anchor
-		this.setAnimations(this.power)
-		this.addChild(this.power)
-
-		this.health = this.maxHealth = config.MAX_HEALTH
-		this.state = CharStates.idle
+	public get direction(): CharDirection {
+		return this.facing
 	}
 
-	public get isDead(): boolean {
-		return this.health <= 0
+	public set direction(value: CharDirection) {
+		if (this.facing !== value) {
+			this.facing = value
+			this.scale.x = value
+		}
 	}
 
-	public hit(dmg: number): boolean {
-		this.health -= dmg
-		return this.isDead
+	public get stateName(): string {
+		return this.stateName
+	}
+
+	public set state(value: string) {
+		if (this.stateName === value) {
+			return
+		}
+
+		if (this.stateName === CharStates.dead) {
+			return
+		}
+
+		this.state = CHAR_STATES[value]
+		this.stateName = value
+
+		const lastTime = performance.now()
+		this.play(this.name, true)
+		this.update(lastTime)
 	}
 
 	public restore(amount: number): void {
-		this.health = Math.min(this.maxHealth, this.health + amount)
-	}
-
-	private setAnimations(sprite: Phaser.Sprite) {
-		for (const key in CharStates) {
-			const state: State = CharStates[key]
-			sprite.animations.add(key, state.frames, state.fps || DEFAULT_FPS, state.loop)
-		}
-	}
-
-	private getName(state: State): string {
-		for (const key in CharStates) {
-			if (CharStates[key] === state) {
-				return key
-			}
-		}
-		throw new Error('Unknown State')
-	}
-
-	public set tile(v: number) {
-		const dest = (v + 0.5) * config.TILE_WIDTH
-		if (this.x) {
-			game.add.tween(this).to({ x: dest }, 800, Phaser.Easing.Exponential.Out, true).start()
-		} else {
-			this.x = dest
-		}
-		this._tile = v
-	}
-
-	public get tile() {
-		return this._tile
-	}
-
-	public get state() {
-		return this._state
-	}
-
-	public face(targetX: number): void {
-		const dir: CharDirection = targetX >= this.x ? 1 : -1
-		if (dir !== this.direction) {
-			this.direction = dir
-			this.scale.x = dir * SCALE
-		}
-	}
-
-	public set state(newState: State) {
-		if (newState === this._state) {
+		if (this.stateName === CharStates.dead) {
 			return
 		}
-		if (newState.pick) {
-			this.frame = utils.pick(newState.frames)
-		} else {
-			this.play(this.getName(newState))
+		this.health = Math.min(config.MAX_HEALTH, this.health + amount)
+		this.state = this.state.power ? CharStates.power : CharStates.heal
+		this.lastAction = performance.now()
+	}
+
+	public face(enemy: Char): void {
+		this.direction = enemy.x > this.x ? CharDirection.right : CharDirection.left
+	}
+
+	protected update(time = performance.now(), force = false): void {
+		if (this.stateName === CharStates.dead) {
+			if (!force) {
+				return
+			}
+			if (this.anims.currentAnim.frameIndex >= 4) {
+				this.anims.stop()
+			}
 		}
-		this._state = newState
-		if (newState.power) {
-			this.power.play('power')
-			this.power.visible = true
-		} else {
-			this.power.animations.stop()
-			this.power.visible = false
+
+		const duration = this.state.fps ? 1000 / this.state.fps : 100
+		const last = this.lastAction + duration * (this.state.pick ? 1 : this.state.frames.length)
+
+		if (time >= last) {
+			this.state = this.state.power ? CHAR_STATES.power : CHAR_STATES.idle
+			this.stateName = this.state.power ? CharStates.power : CharStates.idle
+			this.play(this.name, true)
+			this.lastAction = time
+		}
+
+		if (this.state.fps && this.state.loop) {
+			const frame = this.state.fps ? Math.floor(time / (1000 / this.state.fps)) : 0
+			this.anims.currentAnim.frameIndex = this.state.frames[frame % this.state.frames.length]
 		}
 	}
 }
-
-export interface State {
-	frames: number[];
-	loop?: boolean;
-	pick?: boolean;
-	power?: boolean;
-	fps?: number
-}
-
-export const CharStates: { [name: string]: State } = {
-	idle: { frames: [1] },
-	back: { frames: [18] },
-	charge: { frames: [19/*, 20*/] },
-	attack: { frames: [36, 37, 38, 37], loop: true },
-	dead: { frames: [58, 63, 64, 64, 64, 61], fps: 3 },
-	heal: { frames: [16, 17], power: true, fps: 3 },
-	block: { frames: [54, 55], pick: true },
-	// block: { frames: [81, 82/*, 83*/, 84] },
-	hit: { frames: [57, 58, 59], pick: true },
-	win: { frames: [1, 4, 5, 40, 41, 41, 40, 1], power: true, fps: 5 },
-	power: { frames: [108, 109, 110, 111], loop: true, fps: 12 },
-}
-
-export type CharDirection = 1 | -1

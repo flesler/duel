@@ -21,5 +21,5 @@
 			"assets/*": ["assets/*"]
 		}
 	},
-	"include": ["src/**/*.ts", "node_modules/phaser-ce/typescript/phaser.comments.d.ts"]
+	"include": ["src/**/*.ts", "node_modules/phaser/types/phaser.d.ts"]
 }
