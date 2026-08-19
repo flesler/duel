@@ -15,6 +15,7 @@ export default class extends Phaser.State {
 	private over = false
 	private banner: Phaser.Text
 	private timer: Phaser.TimerEvent | null = null
+	private bars: { g: Phaser.Graphics; x: number; y: number; w: number; h: number; owner: Char }[] = []
 
 	public create() {
 		this.world.addChild(new Scene())
@@ -30,8 +31,19 @@ export default class extends Phaser.State {
 		this.banner = this.add.text(this.world.width / 2, 50, '', { font: '28px monospace', fill: '#fff' })
 		this.banner.anchor.set(0.5)
 		this.banner.visible = false
-
+		this.createHUD()
 		this.timer = this.game.time.events.add(config.ROUND_TIME, this.timeOut, this)
+	}
+
+	private createHUD() {
+		const w = 250
+		const barH = 16
+		this.bars = [this.player1, this.player2].map((p, i) => {
+			const g = this.add.graphics()
+			return { g, x: i === 0 ? 20 : this.world.width - 20 - w, y: 20, w, h: barH, owner: p }
+		})
+		this.add.text(20, 42, 'P1', { font: '14px monospace', fill: '#fff' })
+		this.add.text(this.world.width - 20, 42, 'P2', { font: '14px monospace', fill: '#fff' }).anchor.set(1, 0)
 	}
 
 	private createPlayer(direction: CharDirection, asset: string): Char {
@@ -51,6 +63,17 @@ export default class extends Phaser.State {
 		}
 		this.check(0)
 		this.check(1)
+		for (const { g, x, y, w, h, owner } of this.bars) {
+			const ratio = Math.max(0, owner.health / owner.maxHealth)
+			g.clear()
+			g.lineStyle(2, 0xFFFFFF)
+			g.drawRect(x, y, w, h)
+			if (ratio > 0) {
+				g.beginFill(0x33CC33)
+				g.drawRect(x + 2, y + 2, (w - 4) * ratio, h - 4)
+				g.endFill()
+			}
+		}
 	}
 
 	private check(index: number) {
@@ -125,6 +148,7 @@ export default class extends Phaser.State {
 	private dealDamage(from: Char, to: Char, dmg: number, blocking: boolean) {
 		const actual = blocking ? dmg * config.BLOCK_MITIGATION : dmg
 		this.shake(false)
+		this.play(blocking ? 'block' : 'hit')
 		to.hit(actual)
 		if (to.isDead) {
 			to.state = CharStates.dead
