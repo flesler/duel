@@ -15,6 +15,8 @@ npm run lint      # eslint (npm run fix to autofix)
 - `npm run server` runs `preserver` (regenerates asset data in dev mode, copies `templates/index.html` → `public/index.html`, copies `phaser.min.js` → `public/lib/`) then `tsup --watch` + `serve -l 4000 public dist`.
 - There is no test suite. Verify with `typecheck` + `lint` and by playing in the browser.
 
+**Turn-based rules (not in the Phaser game yet):** simultaneous picks, 100 HP. Ship **Strike / Push / Parry / Heal** at 18 / 18 / 18 / 20, and the winner of a connecting hit also loses 4 HP. Call Block **Parry** in the game; keep Push (anti-Parry grab — they stumble, no tile shove). Optional walking: Strike steps 1, Push does not, **Back vs Strike is a tie**, max one step of gap. Full matchups, rejected experiments, and `npm run sim*` commands: **`docs/simulations.md`**.
+
 ## How it works (big picture)
 
 1. **`templates/index.html`** is the shell template; it's copied to `public/index.html` at build/serve time and loads `public/lib/phaser.min.js` (Phaser global) plus the bundled `dist` output. Fonts load via **webfontloader**.
