@@ -11,6 +11,7 @@ export default class extends Phaser.State {
 	private controller1: Controller
 	private controller2: Controller
 	private cooldowns: number[] = [0, 0]
+	private charge: number[] = [0, 0]
 	private over = false
 	private locked = true
 	private banner: Phaser.Text
@@ -25,6 +26,7 @@ export default class extends Phaser.State {
 		this.player2 = this.createPlayer(-1, selection.characterOf(2))
 		this.controller2 = KeyboardController.createPlayer2()
 		this.cooldowns = [0, 0]
+		this.charge = [0, 0]
 		this.over = false
 
 		this.banner = this.add.text(this.world.width / 2, 50, '', { font: '28px monospace', fill: '#fff' })
@@ -82,6 +84,8 @@ export default class extends Phaser.State {
 		if (this.locked) {
 			return
 		}
+		this.charge[0] = Math.min(1000, this.charge[0] + (this.player1.state === CharStates.charge ? 16 : 0))
+		this.charge[1] = Math.min(1000, this.charge[1] + (this.player2.state === CharStates.charge ? 16 : 0))
 		this.check(0)
 		this.check(1)
 		for (const { g, x, y, w, h, owner } of this.bars) {
@@ -140,8 +144,10 @@ export default class extends Phaser.State {
 			case CharStates.attack:
 				this.play('attack')
 				if (Math.abs(enemy.tile - player.tile) <= 1) {
-					this.dealDamage(player, enemy, config.ATTACK_DAMAGE, enemyBlocking)
+					const dmg = config.ATTACK_DAMAGE + config.CHARGE_DAMAGE * (this.charge[index] / 250)
+					this.dealDamage(player, enemy, dmg, enemyBlocking)
 				}
+				this.charge[index] = 0
 				break
 			case CharStates.heal:
 				player.restore(-config.HEAL_DAMAGE)
