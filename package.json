@@ -12,8 +12,8 @@
     "lint": "eslint --cache --cache-strategy content 'src/**/*.ts'",
     "lint:fix": "npm run lint -- --fix",
     "lint:full": "npm run lint:fix && npm run typecheck",
-    "assets": "tsx ./scripts/generate_assets_data.ts",
-    "assets:dev": "tsx ./scripts/generate_assets_data.ts --dev"
+    "assets": "tsx ./bin/generate_assets_data.ts",
+    "assets:dev": "tsx ./bin/generate_assets_data.ts --dev"
   },
   "repository": {
     "type": "git",

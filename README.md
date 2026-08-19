@@ -46,7 +46,7 @@ See [`docs/summary.md`](docs/summary.md) for architecture and [`docs/backlog.md`
 ```
 templates/index.html        # HTML shell copied to public/ at build
 assets/                     # art/audio sources (atlases, spritesheets, images, audio, fonts)
-scripts/generate_assets_data.ts  # codegen: assets/ -> src/assets.ts (generated, don't hand-edit)
+bin/generate_assets_data.ts  # codegen: assets/ -> src/assets.ts (generated, don't hand-edit)
 src/game.ts                 # entry: Phaser game + font loading + state boot
 src/config.ts               # all game constants
 src/states/                 # Boot -> Preloader -> Fight

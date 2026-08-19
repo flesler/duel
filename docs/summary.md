@@ -22,7 +22,7 @@ npm run lint      # eslint (npm run fix to autofix)
 3. **`src/config.ts`** — central tuning constants: `GameWidth`/`GameHeight`, `Resolution`, and gameplay values. Change numbers here.
 4. **Asset pipeline:**
    - Art/audio live in `assets/` (`atlases/`, `audiosprites/`, `spritesheets/`, `images/`, `audio/`, `fonts/`).
-   - `scripts/generate_assets_data.ts` scans `assets/` and generates **`src/assets.ts`** (auto-generated — don't hand-edit; run `npm run assets` after adding/changing files; `--dev` for dev mode).
+   - `bin/generate_assets_data.ts` scans `assets/` and generates **`src/assets.ts`** (auto-generated — don't hand-edit; run `npm run assets` after adding/changing files; `--dev` for dev mode).
    - `src/utils/asset.ts` (the `Loader` class) + `src/utils/index.ts` (case/extension helpers) do the keying: filenames become camelCase/PascalCase keys so code references assets like typed constants.
 5. **`src/entities/Char.ts`** — fighter sprite. Uses a small state enum (`CharStates` / `State`) with a `setState` switch that throws on unknown states.
 6. **`src/entities/Scene.ts`** — arena/background scene entity.
@@ -37,7 +37,7 @@ npm run lint      # eslint (npm run fix to autofix)
 templates/index.html        # HTML shell, copied to public/ at build
 public/                     # build output dir (index.html, lib/, dist/)
 assets/                     # raw art/audio sources (atlases, spritesheets, images, audio, fonts)
-scripts/generate_assets_data.ts  # codegen: assets/ → src/assets.ts
+bin/generate_assets_data.ts  # codegen: assets/ → src/assets.ts
 src/
   game.ts                   # entry: Phaser.Game + font loading + state boot
   config.ts                 # all game constants
