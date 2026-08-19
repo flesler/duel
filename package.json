@@ -13,7 +13,12 @@
     "lint:fix": "npm run lint -- --fix",
     "lint:full": "npm run lint:fix && npm run typecheck",
     "assets": "tsx ./bin/generate_assets_data.ts",
-    "assets:dev": "tsx ./bin/generate_assets_data.ts --dev"
+    "assets:dev": "tsx ./bin/generate_assets_data.ts --dev",
+    "sim": "tsx ./bin/balance-sim.ts",
+    "sim:search": "tsx ./bin/search-rules.ts",
+    "sim:fun": "tsx ./bin/search-fun.ts",
+    "sim:space": "tsx ./bin/search-space.ts",
+    "sim:catalog": "tsx ./bin/search-catalog.ts"
   },
   "repository": {
     "type": "git",
