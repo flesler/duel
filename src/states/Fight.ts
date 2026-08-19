@@ -1,10 +1,9 @@
-import { Spritesheets } from '../assets'
 import * as config from '../config'
 import KeyboardController from '../input/KeyboardController'
 import Controller from '../input/Controller'
-import * as utils from '../utils'
 import { Char, CharStates, CharDirection } from '../entities/Char'
 import Scene from '../entities/Scene'
+import * as selection from './selection'
 
 export default class extends Phaser.State {
 	private player1: Char
@@ -13,6 +12,7 @@ export default class extends Phaser.State {
 	private controller2: Controller
 	private cooldowns: number[] = [0, 0]
 	private over = false
+	private locked = true
 	private banner: Phaser.Text
 	private timer: Phaser.TimerEvent | null = null
 	private bars: { g: Phaser.Graphics; x: number; y: number; w: number; h: number; owner: Char }[] = []
@@ -20,10 +20,9 @@ export default class extends Phaser.State {
 	public create() {
 		this.world.addChild(new Scene())
 
-		const chars = utils.shuffle(utils.values(Spritesheets).map(s => s.getName()))
-		this.player1 = this.createPlayer(1, chars[0])
+		this.player1 = this.createPlayer(1, selection.characterOf(1))
 		this.controller1 = KeyboardController.createPlayer1()
-		this.player2 = this.createPlayer(-1, chars[1])
+		this.player2 = this.createPlayer(-1, selection.characterOf(2))
 		this.controller2 = KeyboardController.createPlayer2()
 		this.cooldowns = [0, 0]
 		this.over = false
@@ -33,6 +32,24 @@ export default class extends Phaser.State {
 		this.banner.visible = false
 		this.createHUD()
 		this.timer = this.game.time.events.add(config.ROUND_TIME, this.timeOut, this)
+		this.locked = true
+		let step = 3
+		const count = () => {
+			if (step > 1) {
+				this.banner.text = String(step)
+				this.banner.visible = true
+				step--
+				this.game.time.events.add(800, count, this)
+			} else {
+				this.banner.text = 'FIGHT!'
+				this.banner.visible = true
+				this.game.time.events.add(500, () => {
+					this.banner.visible = false
+					this.locked = false
+				}, this)
+			}
+		}
+		this.game.time.events.add(300, count, this)
 	}
 
 	private createHUD() {
@@ -57,8 +74,12 @@ export default class extends Phaser.State {
 	public update() {
 		if (this.over) {
 			if (this.game.input.keyboard.isDown(Phaser.KeyCode.R)) {
-				this.state.start('Fight')
+				selection.reset()
+				this.state.start('Select')
 			}
+			return
+		}
+		if (this.locked) {
 			return
 		}
 		this.check(0)

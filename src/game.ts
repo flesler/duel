@@ -7,6 +7,7 @@ import { GameWidth, GameHeight, Resolution } from './config'
 import Boot from './states/Boot'
 import Preloader from './states/Preloader'
 import Fight from './states/Fight'
+import Select from './states/Select'
 
 const game = new Phaser.Game({
 	width: GameWidth,
@@ -21,6 +22,7 @@ game.forceSingleUpdate = true
 game.state.add('Boot', Boot)
 game.state.add('Preloader', Preloader)
 game.state.add('Fight', Fight)
+game.state.add('Select', Select)
 
 export default game
 

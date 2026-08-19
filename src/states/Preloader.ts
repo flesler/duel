@@ -28,6 +28,6 @@ export default class Preloader extends Phaser.State {
 	}
 
 	private loadFight(): void {
-		this.game.state.start('Fight')
+		this.game.state.start('Select')
 	}
 }
