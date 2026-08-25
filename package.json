@@ -26,7 +26,8 @@
     "sim:search": "tsx ./bin/search-rules.ts",
     "sim:fun": "tsx ./bin/search-fun.ts",
     "sim:space": "tsx ./bin/search-space.ts",
-    "sim:catalog": "tsx ./bin/search-catalog.ts"
+    "sim:catalog": "tsx ./bin/search-catalog.ts",
+    "prepare": "[ \"$CI\" != \"true\" ] && [ -d node_modules/husky ] && husky || true"
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
     "concurrently": "^9.2.1",
     "echo-cli": "^1.0.8",
     "eslint": "^9.30.0",
+    "husky": "^9.1.7",
     "serve": "^14.2.1",
     "shelljs": "^0.10.0",
     "tsup": "^8.5.0",
