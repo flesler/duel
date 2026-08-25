@@ -1,13 +1,13 @@
 import shell from 'shelljs'
 import fs from 'node:fs'
-import commander from 'commander'
+import { program } from 'commander'
 import env from './env.js'
 
-commander
+program
 	.option('--dev', 'Generate asset data for dev (DEBUG=true); omit for production')
 	.parse(process.argv)
 
-if (commander.dev) {
+if (program.opts().dev) {
 } else {
 }
 
@@ -48,7 +48,7 @@ const loaderTypes = {
 	json: {},
 	text: {},
 	script: {},
-	misc: {}
+	misc: {},
 }
 
 const audioExtensions = ['aac', 'ac3', 'caf', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm']
@@ -186,7 +186,6 @@ if (!Object.keys(loaderTypes.atlas).length) {
 			var dataFile = ('assets/' + i + '.' + loaderTypes.atlas[i][t])
 			var fileData = null
 			var json = null
-			var parser = null
 			var frameFull = ''
 			var frame = ''
 

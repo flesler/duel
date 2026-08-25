@@ -6,31 +6,31 @@ export type SpaceAction = typeof SPACE_ACTIONS[number]
 export const SPACE_IDX = { Strike: 0, Push: 1, Block: 2, Heal: 3, Back: 4, Forward: 5 } as const
 
 export type SpaceRules = {
-	name: string
-	damage: Ruleset
-	startDist: number
-	minDist: number
-	maxDist: number
+	name: string;
+	damage: Ruleset;
+	startDist: number;
+	minDist: number;
+	maxDist: number;
 	/** Positive closes. Back is negative. */
-	close: [number, number, number, number, number, number]
-	strikeRange: number
-	pushRange: number
-	healMaxDist: number
+	close: [number, number, number, number, number, number];
+	strikeRange: number;
+	pushRange: number;
+	healMaxDist: number;
 	ram: number
 }
 
 type Rng = () => number
 
 export type SpaceCtx = {
-	history: { me: SpaceAction; opp: SpaceAction }[]
-	hpMe: number
-	hpOpp: number
-	dist: number
+	history: { me: SpaceAction; opp: SpaceAction }[];
+	hpMe: number;
+	hpOpp: number;
+	dist: number;
 	rng: Rng
 }
 
 export type SpaceStrategy = {
-	name: string
+	name: string;
 	choose: (ctx: SpaceCtx) => number
 }
 
@@ -218,11 +218,11 @@ export function rushdown(rules: SpaceRules): SpaceStrategy {
 }
 
 type SpaceMatch = {
-	winner: 'A' | 'B' | 'draw'
-	turns: number
-	ko: boolean
-	usageA: number[]
-	avgDist: number
+	winner: 'A' | 'B' | 'draw';
+	turns: number;
+	ko: boolean;
+	usageA: number[];
+	avgDist: number;
 	deadRounds: number
 }
 
@@ -275,11 +275,11 @@ export function playSpace(
 }
 
 export type SpaceSeries = {
-	fairA: number
-	avgTurns: number
-	koRate: number
-	avgDist: number
-	deadRoundRate: number
+	fairA: number;
+	avgTurns: number;
+	koRate: number;
+	avgDist: number;
+	deadRoundRate: number;
 	usageA: number[]
 }
 

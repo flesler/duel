@@ -6,15 +6,17 @@ const stylisticPlugin = require('@stylistic/eslint-plugin')
 module.exports = [
 	eslintJs.configs.recommended,
 	{
-		files: ['src/**/*.ts'],
+		files: ['{src,bin}/**/*.ts'],
 		languageOptions: {
 			parser: tsParser,
 			parserOptions: {
-				project: './tsconfig.json',
+				project: './bin/tsconfig.json',
 			},
 			ecmaVersion: 2020,
 			sourceType: 'module',
 			globals: {
+				console: 'readonly',
+				process: 'readonly',
 				Phaser: 'readonly',
 				PIXI: 'readonly',
 				DEBUG: 'readonly',
@@ -54,6 +56,8 @@ module.exports = [
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/no-empty-function': 'off',
 			'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+			'no-undef': 'off',
+			'no-redeclare': 'off',
 			'no-empty': 'off',
 			'no-prototype-builtins': 'off',
 			'no-console': 'off',

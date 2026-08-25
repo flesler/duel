@@ -58,7 +58,7 @@
    - `import { funChip4 } from '…'` (or `rulesets.candidates` by name). No damage constants in `config.ts` for combat.
 
 5. **Verify**
-   - `npm run typecheck && npm run lint`
+   - `npm run lint:full`
    - Spot-check: same picks as `resolve()` in a one-off script or REPL — **not** “does it look right in browser” for math.
 
 ---

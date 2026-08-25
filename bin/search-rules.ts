@@ -19,15 +19,15 @@ const CHIPS = [0, 4]
 const MATCH_GAMES = 600
 
 type Candidate = {
-	rules: Ruleset
-	mix: number[]
-	fairVsPure: number
-	fairAwareVsPure: number
-	awareHeal: number
-	awareVsBlock: number
-	awareVsStrike: number
-	avgTurns: number
-	koRate: number
+	rules: Ruleset;
+	mix: number[];
+	fairVsPure: number;
+	fairAwareVsPure: number;
+	awareHeal: number;
+	awareVsBlock: number;
+	awareVsStrike: number;
+	avgTurns: number;
+	koRate: number;
 	score: number
 }
 

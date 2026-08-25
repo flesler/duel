@@ -34,7 +34,7 @@ input → intent (e.g. pick Strike) → engine.step(state, intents) → new stat
 ## How to verify
 
 - Rule or number change → `npm run sim` (and related `sim:*` scripts) or a focused script against the engine
-- UI change → typecheck, lint, optional manual check for **feel** only (animation timing, readability) — not whether Parry beats Strike
+- UI change → `test:types`, lint, optional manual check for **feel** only (animation timing, readability) — not whether Parry beats Strike
 
 ## When adding features
 

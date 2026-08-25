@@ -15,7 +15,7 @@ Decision: migrate to latest Phaser (4.2.1), keep Phaser as external in the web b
   - `src/entities/Char.ts` — FULL REWRITE, believed-correct: `extends Phaser.Physics.Arcade.Sprite`, constructor `(scene: Phaser.Scene, name, direction)`, per-state anims pre-created via `scene.anims.create(\`${name}-${state}\`, { texture, frames: number[], frameRate, repeat })`, `setCharState(name)` (no `state` field — Phaser 4's base GameObject has a `state: string|number` property; naming clash caused duplicate-identifier errors), exports `State` interface, `restore()`/`face()`, `update()` uses `performance.now()`, direction flip via `scale.x`.
   - `src/game.ts` — REWRITE: `new Phaser.Game({ parent: 'game', width, height, transparent, render: WEBGL|CANVAS, physics: { default: 'arcade', arcade: { debug: false } }, scale: { mode: Scale.RESIZE, autoCenter: Scale.CENTER_BOTH }, scene: [Boot, Preloader, Select, Fight] })`, `export default game`. No more `window.onload`/`game.state.start`.
 
-Everything else is still written against the Phaser 2 API. **Build is RED.** The typecheck error list (post-retarget) is the authoritative list of what Phaser 4 changed; notable ones:
+Everything else is still written against the Phaser 2 API. **Build is RED.** The TypeScript error list (post-retarget) is the authoritative list of what Phaser 4 changed; notable ones:
 
 ```
 Phaser.Color — does not exist (use number literals, e.g. 0x000000)

@@ -7,15 +7,15 @@ import sim, { defaults, type Ruleset } from './sim/engine.ts'
 const MATCH_GAMES = 500
 
 type Row = {
-	rules: Ruleset
-	mix: number[]
-	fairVsPure: number
-	awareHeal: number
-	avgTurns: number
-	koRate: number
-	vsAggro: number
-	vsTurtle: number
-	knobs: number
+	rules: Ruleset;
+	mix: number[];
+	fairVsPure: number;
+	awareHeal: number;
+	avgTurns: number;
+	koRate: number;
+	vsAggro: number;
+	vsTurtle: number;
+	knobs: number;
 	score: number
 }
 

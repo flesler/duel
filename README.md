@@ -13,7 +13,7 @@ Other scripts:
 
 ```bash
 npm run dist        # production build
-npm run typecheck   # tsc --noEmit
+npm run test:types  # incremental tsc (src + bin)
 npm run lint        # eslint
 npm run fix         # eslint --fix
 npm run assets      # regenerate src/assets.ts from assets/ (after adding/changing art or audio)

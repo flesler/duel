@@ -8,12 +8,12 @@
 npm install
 npm run server    # dev: watch-builds (tsup) + serves on http://localhost:4000
 npm run dist      # production build
-npm run typecheck # tsc --noEmit
-npm run lint      # eslint (npm run fix to autofix)
+npm run test:types # incremental tsc (src + bin)
+npm run lint      # eslint (npm run lint:fix to autofix)
 ```
 
 - `npm run server` runs `preserver` (regenerates asset data in dev mode, copies `templates/index.html` → `public/index.html`, copies `phaser.min.js` → `public/lib/`) then `tsup --watch` + `serve -l 4000 public dist`.
-- There is no test suite yet. **Rules and balance:** `npm run sim` (headless engine in `bin/sim/`). **UI:** typecheck + lint; visual play is for feel only, not rule verification (see `.cursor/rules/headless-engine.mdc`).
+- There is no test suite yet. **Rules and balance:** `npm run sim` (headless engine in `bin/sim/`). **UI:** `test:types` + lint; visual play is for feel only, not rule verification (see `.cursor/rules/headless-engine.mdc`).
 
 **Turn-based rules (not wired into Phaser yet):** simultaneous picks, 100 HP. Ship **Strike / Push / Parry / Heal** at 18 / 18 / 18 / 20, winner of a connecting hit also loses 4 HP. Full design: **`docs/simulations.md`**.
 

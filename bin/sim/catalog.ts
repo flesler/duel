@@ -7,10 +7,10 @@ import { createRng, nash } from './engine.ts'
 export type Hp = { me: number; them: number }
 
 export type Catalog = {
-	name: string
-	moves: string[]
+	name: string;
+	moves: string[];
 	/** hp[myMove][theirMove] */
-	hp: Hp[][]
+	hp: Hp[][];
 	note: string
 }
 
