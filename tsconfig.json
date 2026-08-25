@@ -15,11 +15,12 @@
 		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
-		"types": ["node"],
+		"types": ["node", "phaser"],
 		"baseUrl": ".",
 		"paths": {
+			"phaser": ["src/phaser-shim.ts"],
 			"assets/*": ["assets/*"]
 		}
 	},
-	"include": ["src/**/*.ts", "node_modules/phaser/types/phaser.d.ts"]
+	"include": ["src/**/*.ts"]
 }

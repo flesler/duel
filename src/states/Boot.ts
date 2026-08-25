@@ -1,45 +1,38 @@
+import Phaser from 'phaser'
 import * as utils from '../utils'
 import { Atlases, Images, Spritesheets, Audio } from '../assets'
-import { GameWidth, GameHeight, ScaleMode, MultiTouchSupport } from '../config'
+import { MultiTouchSupport } from '../config'
 
 const { PreloadSprites } = Atlases
 
-export default class Boot extends Phaser.State {
-	public preload(): void {
-		this.game.load.atlasJSONHash(PreloadSprites.getName(), PreloadSprites.getPNG(), PreloadSprites.getJSONHash())
+export default class Boot extends Phaser.Scene {
+	constructor() {
+		super({ key: 'Boot' })
+	}
+
+	preload() {
+		this.load.atlas(PreloadSprites.getName(), PreloadSprites.getPNG(), PreloadSprites.getJSONHash())
 		for (const img of utils.values(Images)) {
-			this.game.load.image(img.getName(), img.getPNG())
+			this.load.image(img.getName(), img.getPNG())
 		}
-
 		for (const sheet of utils.values(Spritesheets)) {
-			this.game.load.spritesheet(sheet.getName(), sheet.getPNG(), sheet.getFrameWidth(), sheet.getFrameHeight(), sheet.getFrameMax(), sheet.getMargin(), sheet.getSpacing())
+			this.load.spritesheet(sheet.getName(), sheet.getPNG(), {
+				frameWidth: sheet.getFrameWidth(),
+				frameHeight: sheet.getFrameHeight(),
+				endFrame: sheet.getFrameMax() - 1,
+				margin: sheet.getMargin(),
+				spacing: sheet.getSpacing(),
+			})
 		}
-
 		for (const audio of utils.values(Audio)) {
-			this.game.load.audio(audio.getName(), audio.getMP3())
+			this.load.audio(audio.getName(), audio.getMP3())
 		}
 	}
 
-	public create(): void {
+	create() {
 		if (!MultiTouchSupport) {
-			this.input.maxPointers = 1
+			this.input.setTopOnly(true)
 		}
-
-		this.game.scale.scaleMode = Phaser.ScaleManager[ScaleMode]
-
-		this.game.scale.pageAlignHorizontally = true
-		this.game.scale.pageAlignVertically = true
-
-		if (this.game.device.desktop) {
-			// Any desktop specific stuff here
-		}
-		else {
-			// Any mobile specific stuff here
-
-			const is_landscape = (GameWidth > GameHeight)
-			this.game.scale.forceOrientation(is_landscape, !is_landscape)
-		}
-
-		this.game.state.start('Preloader')
+		this.scene.start('Preloader')
 	}
 }

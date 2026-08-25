@@ -12,12 +12,3 @@ export const MultiTouchSupport = false
 
 export const TILES = 10
 export const TILE_WIDTH = Math.floor(GameWidth / TILES)
-
-export const MAX_HEALTH = 100
-export const ATTACK_DAMAGE = 30
-export const CHARGE_DAMAGE = 10
-export const HEAL_DAMAGE = -10
-export const BLOCK_MITIGATION = 0.5
-
-export const ACTION_COOLDOWN = 600
-export const ROUND_TIME = 60000

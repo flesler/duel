@@ -1,65 +1,82 @@
 import Phaser from 'phaser'
-import { Spritesheets } from '../assets'
 import * as config from '../config'
+import * as utils from '../utils'
 
-export enum CharDirection {
-	left = -1, right = 1
-}
+const DEFAULT_FPS = 8
+const SCALE = 1.7
 
-export const CharStates = {
-	idle: 'idle', back: 'back', charge: 'charge', attack: 'attack', block: 'block', heal: 'heal', hit: 'hit', win: 'win', dead: 'dead'
-}
+export type CharDirection = 1 | -1
 
-export interface State {
-	frames: number[]
-	loop?: boolean
-	pick?: boolean
+export interface AnimDef {
+	frames: number[];
+	loop?: boolean;
+	pick?: boolean;
+	power?: boolean;
 	fps?: number
-	power?: boolean
 }
 
-const CHAR_STATES: { [name: string]: State } = {
-	idle: { frames: [1, 2, 3, 4, 3, 2], loop: true, fps: 8 },
-	back: { frames: [7, 8, 9, 10, 9, 8] },
-	charge: { frames: [11, 12, 13, 14], loop: true, fps: 20 },
-	attack: { frames: [15, 16, 17, 18, 19, 20, 21, 22, 23, 24], loop: true, fps: 10 },
-	block: { frames: [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34], loop: true, fps: 20 },
-	heal: { frames: [2, 1], pick: true },
-	hit: { frames: [2, 1], pick: true },
-	win: { frames: [0], loop: true },
-	dead: { frames: [35, 36, 37, 38, 39, 40], fps: 3 },
-	power: { frames: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], fps: 20, power: true }
+export const Anim = {
+	idle: 'idle',
+	back: 'back',
+	charge: 'charge',
+	attack: 'attack',
+	dead: 'dead',
+	heal: 'heal',
+	block: 'block',
+	hit: 'hit',
+	win: 'win',
+	power: 'power',
+} as const
+
+export type AnimName = typeof Anim[keyof typeof Anim]
+
+const ANIMS: Record<AnimName, AnimDef> = {
+	idle: { frames: [1] },
+	back: { frames: [18] },
+	charge: { frames: [19] },
+	attack: { frames: [36, 37, 38, 37], loop: true },
+	dead: { frames: [58, 63, 64, 64, 64, 61], fps: 3 },
+	heal: { frames: [16, 17], power: true, fps: 3 },
+	block: { frames: [54, 55], pick: true },
+	hit: { frames: [57, 58, 59], pick: true },
+	win: { frames: [1, 4, 5, 40, 41, 41, 40, 1], power: true, fps: 5 },
+	power: { frames: [108, 109, 110, 111], loop: true, fps: 12 },
 }
+
+/** @deprecated use Anim */
+export const CharStates = Anim
 
 export class Char extends Phaser.Physics.Arcade.Sprite {
-	public health = config.MAX_HEALTH
+	public health = 100
+	public maxHealth = 100
 	public tile = 0
-	public cooldownEnd = 0
 	public facing: CharDirection
 
-	protected name: string
-	protected lastAction = 0
-	protected stateDef: State = null
-	protected stateDefName: string = null
+	private textureKey: string
+	private stateName: AnimName = Anim.idle
 
-	constructor(scene: Phaser.Scene, name: string, direction: CharDirection) {
-		const sheet = Spritesheets[name]
-		super(scene, 100, 100, sheet.getName())
+	constructor(scene: Phaser.Scene, textureKey: string, direction: CharDirection) {
+		super(scene, 0, 0, textureKey)
 		scene.add.existing(this)
-		this.name = name
+		this.textureKey = textureKey
 		this.facing = direction
-		this.scale.x = direction
+		this.setOrigin(0.5, 1)
+		this.setScale(direction * SCALE, SCALE)
 
-		for (const stateName of Object.keys(CHAR_STATES)) {
-			const def = CHAR_STATES[stateName]
-			scene.anims.create(`${name}-${stateName}`, {
-				texture: sheet.getName(),
-				frames: def.frames,
-				frameRate: def.fps || 10,
-				repeat: def.loop ? -1 : 0
-			})
+		for (const name of Object.keys(ANIMS) as AnimName[]) {
+			const def = ANIMS[name]
+			const key = `${textureKey}-${name}`
+			if (!scene.anims.exists(key)) {
+				scene.anims.create({
+					key,
+					frames: scene.anims.generateFrameNumbers(textureKey, { frames: def.frames }),
+					frameRate: def.fps || DEFAULT_FPS,
+					repeat: def.loop ? -1 : 0,
+				})
+			}
 		}
-		this.setCharState(CharStates.idle)
+
+		this.setCharState(Anim.idle)
 	}
 
 	public get direction(): CharDirection {
@@ -69,48 +86,56 @@ export class Char extends Phaser.Physics.Arcade.Sprite {
 	public set direction(value: CharDirection) {
 		if (this.facing !== value) {
 			this.facing = value
-			this.scale.x = value
+			this.setScale(value * SCALE, SCALE)
 		}
 	}
 
-	public get stateName(): string {
-		return this.stateDefName
+	public get isDead(): boolean {
+		return this.health <= 0
 	}
 
-	public setCharState(value: string): void {
-		if (this.stateDefName === value || this.stateDefName === CharStates.dead) {
+	public setHp(hp: number, maxHp: number): void {
+		this.maxHealth = maxHp
+		this.health = Math.min(maxHp, Math.max(0, hp))
+	}
+
+	public face(targetX: number): void {
+		this.direction = targetX >= this.x ? 1 : -1
+	}
+
+	public setCharState(value: AnimName, force = false): void {
+		if (!force && (this.stateName === value || this.stateName === Anim.dead)) {
 			return
 		}
-		this.stateDef = CHAR_STATES[value]
-		this.stateDefName = value
-		this.lastAction = performance.now()
-		this.play(`${this.name}-${value}`, false, 0)
-	}
-
-	public restore(amount: number): void {
-		if (this.stateDefName === CharStates.dead) {
+		const def = ANIMS[value]
+		if (!def) {
 			return
 		}
-		this.health = Math.min(config.MAX_HEALTH, this.health + amount)
-		this.setCharState(this.stateDef.power ? CharStates.power : CharStates.heal)
+		this.stateName = value
+		if (def.pick) {
+			this.setFrame(utils.pick(def.frames))
+		} else {
+			this.play(`${this.textureKey}-${value}`, true)
+		}
 	}
 
-	public face(enemy: Char): void {
-		this.direction = enemy.x > this.x ? CharDirection.right : CharDirection.left
+	public animStateFor(action: string): AnimName {
+		switch (action) {
+			case 'Strike':
+				return Anim.attack
+			case 'Push':
+				return Anim.charge
+			case 'Block':
+				return Anim.block
+			case 'Heal':
+				return Anim.heal
+			default:
+				return Anim.idle
+		}
 	}
 
-	protected update(time = performance.now(), force = false): void {
-		if (this.stateDefName === CharStates.dead) {
-			if (!force) {
-				return
-			}
-			this.anims.stop()
-			return
-		}
-
-		const duration = (this.stateDef.fps ? 1000 / this.stateDef.fps : 100) * (this.stateDef.pick ? 1 : this.stateDef.frames.length)
-		if (time >= this.lastAction + duration) {
-			this.setCharState(this.stateDef.power ? CharStates.power : CharStates.idle)
-		}
+	public setTile(tile: number): void {
+		this.tile = tile
+		this.x = (tile + 0.5) * config.TILE_WIDTH
 	}
 }

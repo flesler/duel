@@ -1,5 +1,5 @@
-import { Char, State } from '../entities/Char'
+import type { Action } from '../engine/engine'
 
-export default interface Controller {
-	decide(player: Char, enemy: Char): State
+export default interface TurnController {
+	pollPick(): Action | null
 }

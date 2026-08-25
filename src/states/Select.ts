@@ -1,63 +1,68 @@
-import { Spritesheets } from '../assets'
-import game from '../game'
-import { Char, CharStates } from '../entities/Char'
+import Phaser from 'phaser'
+import { Char, Anim } from '../entities/Char'
 import * as selection from './selection'
+const { KeyCodes } = Phaser.Input.Keyboard
 
-const names = Object.keys(Spritesheets)
-const { KeyCode } = Phaser
-
-export default class extends Phaser.State {
-	private title: Phaser.Text
-	private hint: Phaser.Text
+export default class Select extends Phaser.Scene {
 	private preview1: Char
 	private preview2: Char
-	private label1: Phaser.Text
-	private label2: Phaser.Text
-	private keys: any
+	private label1: Phaser.GameObjects.Text
+	private label2: Phaser.GameObjects.Text
+	private keys: Record<string, Phaser.Input.Keyboard.Key>
 
-	public create() {
-		selection.reset()
-
-		this.title = this.add.text(game.world.centerX, 80, 'DUEL', { font: '48px monospace', fill: '#fff' })
-		this.title.anchor.set(0.5)
-
-		this.preview1 = new Char(names[selection[1]], 1)
-		this.preview1.x = game.world.centerX - 120
-		this.preview1.y = game.world.height / 2 + 60
-		this.world.addChild(this.preview1)
-
-		this.preview2 = new Char(names[selection[2]], -1)
-		this.preview2.x = game.world.centerX + 120
-		this.preview2.y = game.world.height / 2 + 60
-		this.world.addChild(this.preview2)
-
-		this.label1 = this.add.text(this.preview1.x, this.preview1.y + 20, names[selection[1]], { font: '16px monospace', fill: '#fff' })
-		this.label1.anchor.set(0.5)
-		this.label2 = this.add.text(this.preview2.x, this.preview2.y + 20, names[selection[2]], { font: '16px monospace', fill: '#fff' })
-		this.label2.anchor.set(0.5)
-
-		this.hint = this.add.text(game.world.centerX, game.world.height - 50,
-			'P1: A/D choose    P2: ←/→ choose    SPACE or ENTER: fight', { font: '16px monospace', fill: '#ccc' })
-		this.hint.anchor.set(0.5)
-
-		this.keys = game.input.keyboard.addKeys({
-			back1: KeyCode.A, charge1: KeyCode.D, back2: KeyCode.LEFT, charge2: KeyCode.RIGHT, go1: KeyCode.SPACEBAR, go2: KeyCode.ENTER,
-		})
+	constructor() {
+		super({ key: 'Select' })
 	}
 
-	public update() {
-		if (this.keys.back1.justDown) selection.cycle(1, -1)
-		if (this.keys.charge1.justDown) selection.cycle(1, 1)
-		if (this.keys.back2.justDown) selection.cycle(2, -1)
-		if (this.keys.charge2.justDown) selection.cycle(2, 1)
+	create() {
+		selection.reset()
 
-		this.preview1.state = CharStates.charge
-		this.preview2.state = CharStates.charge
-		this.label1.text = names[selection[1]]
-		this.label2.text = names[selection[2]]
+		this.add.text(this.scale.width / 2, 80, 'DUEL', { fontFamily: 'monospace', fontSize: '48px', color: '#ffffff' }).setOrigin(0.5)
 
-		if (this.keys.go1.justDown || this.keys.go2.justDown) {
-			this.game.state.start('Fight')
+		this.preview1 = new Char(this, selection.characterOf(1), 1)
+		this.preview1.setPosition(this.scale.width / 2 - 120, this.scale.height / 2 + 60)
+
+		this.preview2 = new Char(this, selection.characterOf(2), -1)
+		this.preview2.setPosition(this.scale.width / 2 + 120, this.scale.height / 2 + 60)
+
+		this.label1 = this.add.text(this.preview1.x, this.preview1.y + 20, selection.characterOf(1), { fontFamily: 'monospace', fontSize: '16px', color: '#ffffff' }).setOrigin(0.5)
+		this.label2 = this.add.text(this.preview2.x, this.preview2.y + 20, selection.characterOf(2), { fontFamily: 'monospace', fontSize: '16px', color: '#ffffff' }).setOrigin(0.5)
+
+		this.add.text(this.scale.width / 2, this.scale.height - 50,
+			'P1: A/D choose    P2: ←/→ choose    SPACE or ENTER: fight',
+			{ fontFamily: 'monospace', fontSize: '16px', color: '#cccccc' }).setOrigin(0.5)
+
+		this.keys = this.input.keyboard.addKeys({
+			back1: KeyCodes.A,
+			charge1: KeyCodes.D,
+			back2: KeyCodes.LEFT,
+			charge2: KeyCodes.RIGHT,
+			go1: KeyCodes.SPACE,
+			go2: KeyCodes.ENTER,
+		}) as Record<string, Phaser.Input.Keyboard.Key>
+	}
+
+	update() {
+		if (Phaser.Input.Keyboard.JustDown(this.keys.back1)) {
+			selection.cycle(1, -1)
+		}
+		if (Phaser.Input.Keyboard.JustDown(this.keys.charge1)) {
+			selection.cycle(1, 1)
+		}
+		if (Phaser.Input.Keyboard.JustDown(this.keys.back2)) {
+			selection.cycle(2, -1)
+		}
+		if (Phaser.Input.Keyboard.JustDown(this.keys.charge2)) {
+			selection.cycle(2, 1)
+		}
+
+		this.preview1.setCharState(Anim.charge, true)
+		this.preview2.setCharState(Anim.charge, true)
+		this.label1.setText(selection.characterOf(1))
+		this.label2.setText(selection.characterOf(2))
+
+		if (Phaser.Input.Keyboard.JustDown(this.keys.go1) || Phaser.Input.Keyboard.JustDown(this.keys.go2)) {
+			this.scene.start('Fight')
 		}
 	}
 }

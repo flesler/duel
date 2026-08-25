@@ -22,6 +22,9 @@ export default defineConfig((options) => ({
     GOOGLE_WEB_FONTS: JSON.stringify(env.GOOGLE_WEB_FONTS),
     SOUND_EXTENSIONS_PREFERENCE: JSON.stringify(env.SOUND_EXTENSIONS_PREFERENCE),
   },
+  esbuildOptions(options) {
+    options.alias = { phaser: 'src/phaser-shim.ts', ...options.alias }
+  },
   // Replaces webpack file-loader for assets
   loader: {
     '.png': 'file', '.jpg': 'file', '.jpeg': 'file', '.gif': 'file',

@@ -1,52 +1,59 @@
-import { Char, State, CharStates } from '../entities/Char'
-import game from '../game'
-import Controller from './Controller'
+import Phaser from 'phaser'
+import type { Action } from '../engine/engine'
+import TurnController from './Controller'
 
-const { KeyCode } = Phaser
+const { KeyCodes } = Phaser.Input.Keyboard
 
-export default class KeyboardController implements Controller {
-	private keys: any
+const P1: Record<string, Action> = {
+	strike: 'Strike',
+	push: 'Push',
+	parry: 'Block',
+	heal: 'Heal',
+}
 
-	public static createPlayer1(): KeyboardController {
-		return new KeyboardController(KeyCode.A, KeyCode.D, KeyCode.W, KeyCode.S, KeyCode.SPACEBAR)
+const P2: Record<string, Action> = {
+	strike: 'Strike',
+	push: 'Push',
+	parry: 'Block',
+	heal: 'Heal',
+}
+
+export default class KeyboardController implements TurnController {
+	private keys: Record<string, Phaser.Input.Keyboard.Key>
+
+	public static createPlayer1(scene: Phaser.Scene): KeyboardController {
+		return new KeyboardController(scene, {
+			strike: KeyCodes.SPACE,
+			push: KeyCodes.D,
+			parry: KeyCodes.W,
+			heal: KeyCodes.S,
+		}, P1)
 	}
 
-	public static createPlayer2(): KeyboardController {
-		return new KeyboardController(KeyCode.RIGHT, KeyCode.LEFT, KeyCode.UP, KeyCode.DOWN, KeyCode.ENTER)
+	public static createPlayer2(scene: Phaser.Scene): KeyboardController {
+		return new KeyboardController(scene, {
+			strike: KeyCodes.ENTER,
+			push: KeyCodes.RIGHT,
+			parry: KeyCodes.UP,
+			heal: KeyCodes.DOWN,
+		}, P2)
 	}
 
-	constructor(back: number, charge: number, block: number, heal: number, attack: number) {
-		this.keys = game.input.keyboard.addKeys({ back, charge, block, heal, attack })
+	constructor(
+		scene: Phaser.Scene,
+		bindings: Record<string, number>,
+		private readonly map: Record<string, Action>,
+	) {
+		this.keys = scene.input.keyboard.addKeys(bindings) as Record<string, Phaser.Input.Keyboard.Key>
 	}
 
-	public decide(player: Char, _enemy: Char): State {
-		for (const action of Object.keys(CharStates)) {
-			if (this.keys[action] && this.keys[action].isDown) {
-				return CharStates[action]
+	public pollPick(): Action | null {
+		for (const name of Object.keys(this.map)) {
+			const key = this.keys[name]
+			if (key && Phaser.Input.Keyboard.JustDown(key)) {
+				return this.map[name]
 			}
 		}
-		const { input: { keyboard } } = game
-		const { animations } = player
-		const { KeyCode } = Phaser
-
-		if (keyboard.isDown(KeyCode.ONE)) {
-			return CharStates.heal
-		}
-		if (keyboard.isDown(KeyCode.TWO)) {
-			return CharStates.attack
-		}
-		if (keyboard.isDown(KeyCode.THREE)) {
-			return CharStates.win
-		}
-		if (keyboard.isDown(KeyCode.FOUR)) {
-			return CharStates.hit
-		}
-		if (keyboard.isDown(KeyCode.FIVE)) {
-			return CharStates.dead
-		}
-		if (!animations.paused) {
-			return CharStates.idle
-		}
-		return player.state
+		return null
 	}
 }
