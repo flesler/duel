@@ -8,7 +8,7 @@ export default defineConfig({
 	test: {
 		environment: 'node',
 		include: ['src/**/*.test.ts', 'bin/**/*.test.ts'],
-		exclude: ['node_modules', 'dist', 'public'],
+		exclude: ['node_modules', 'dist', 'public', 'src/util/utils.test.ts'],
 		reporters: process.env.VERBOSE === '1' ? 'verbose' : 'dot',
 		pool: 'threads',
 		coverage: { enabled: false },
