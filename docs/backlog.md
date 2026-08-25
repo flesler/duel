@@ -1,6 +1,8 @@
 # Backlog — what's missing for a playable MVP
 
-Current state: two characters pick random sprites, move back/charge/attack on a tile grid (see `Fight.ts`), but there's no damage applied, no health, no win/lose, no feedback, and no menu/restart. Config already defines `MAX_HEALTH`, `ATTACK_DAMAGE`, `CHARGE_DAMAGE`, `HEAL_DAMAGE`, `BLOCK_MITIGATION` but nothing consumes them.
+> **Superseded for combat rules** by turn-based design in [`docs/simulations.md`](simulations.md) and implementation plan in [`docs/handoff-combat-v1.md`](handoff-combat-v1.md). Items below describe the **old real-time** prototype; many are obsolete.
+
+Current state: Select → Fight with real-time tile combat (`Fight.ts`). Target: turn-based v1 per handoff (engine-driven, no walking).
 
 - [ ] Apply damage: hit detection between attacker and enemy on `attack` (use existing `config.ATTACK_DAMAGE` / `CHARGE_DAMAGE`)
 - [ ] Health on `Char` (start at `MAX_HEALTH`), track, and decrement on hits

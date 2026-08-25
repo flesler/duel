@@ -10,6 +10,8 @@ Turn-based fight. Both pick at the same time, then both resolve. 100 HP, 20 turn
 
 If a move is never the right answer, that is a bug.
 
+**Architecture:** Rules run only in the headless engine (`bin/sim/`). The Phaser game is a visual client — same `resolve` / match code as `npm run sim`, no duplicate logic in `src/`. Never use “play in the browser” to verify a rule change. See `.cursor/rules/headless-engine.mdc`.
+
 ```bash
 npm run sim          # named number sets (bin/sim/rulesets.ts)
 npm run sim:search   # grid-search 18-ish damage numbers
@@ -26,7 +28,24 @@ npm run sim:catalog  # different move lists (Parry, drop Push, …)
 | `bin/sim/catalog.ts` | Different move lists |
 | `bin/search-*.ts` | Runners for the commands above |
 
-Do not write “chip”, “lunge”, or “Nash” in player-facing text. In this doc: **winner also loses 4**, **Strike steps in**, **even mix** (what a perfect mixer would throw).
+Do not write “chip”, “lunge”, or “Nash” in player-facing text. In this doc: **winner also loses 4**, **Strike steps in**, **even mix** (the equilibrium mix for that move list).
+
+---
+
+## How we test (opponent models)
+
+Claims like “beats the mix” or “loses to one-button Parry” only make sense with the opponent named.
+
+| Label | What it is | Where |
+|-------|------------|--------|
+| **Even mix** | Equilibrium mix for that ruleset (not uniform random). Static — does not adapt to you. | `catalog.ts`, `balance-sim.ts` |
+| **One-button** | Always the same move. | `sim:catalog`, `balance-sim` “vs pure” |
+| **HP-aware** | Counters your *last* move; Heals when hurt and you just Parried. Adaptive, but simple. | `engine.ts` `hpAware`, `balance-sim` |
+| **Styles** | Fixed mixes (Aggro / Turtle / Greedy) plus noisy equilibrium. | `balance-sim.ts` |
+| **Duelist** | Space bot: closes distance, then plays a rough 4-move mix. | `space.ts`, `sim:space` |
+| **Clock-turtle** | Ahead on HP: Back to burn clock, Parry when cornered. Tested at 72 vs 88 HP. | `space.ts` `leadingClockTurtle`, `sim:space` |
+
+The drop-Push finding (“always Parry ~76% vs the 3-move even mix”) is **static even mix vs one-button**, not HP-aware vs one-button. It still flags a real hole: no full-health answer to Parry without Push.
 
 ---
 
@@ -39,11 +58,11 @@ Do not write “chip”, “lunge”, or “Nash” in player-facing text. In th
 | **Parry** (code: Block) | Strike | They lose 18, you lose 4 | **Push**: you lose 18. **Heal**: they gain 20, you do nothing |
 | **Heal** | Parry (or also Heal) | You gain 20 | Strike or Push: you lose 18, no heal |
 
-Same-move combat (both Strike, both Push, both Parry): nothing, unless you turn on “both lose 2 on ties.”
+Same-move combat (both Strike, both Push, both Parry): nothing, unless you turn on “both lose 2 on ties” (`fun-chip-clash`).
 
 **Push exists to hurt a Parry from full health.** Heal also “beats” Parry, but Heal does nothing at 100 HP, so “always Parry” wins the opening if Push is gone. Push is the grab even if the sprite just falls over.
 
-Heal 20, not 15: at 15, Push is better in every matchup (bug). At 20 vs Parry, Heal is greedier than Push’s 18, so both stay honest.
+**Heal 20, not 15 (with clean hits):** On `v1-18-20` (winner loses 0), Heal 15 is **dominated by Push** in the static matrix — Push is ≥ Heal in every row. With winner-also-loses-4, that domination goes away; 15 vs 20 is mostly greed margin (Push vs Parry nets 14, Heal nets 15). We ship 20 for headroom.
 
 The code name `fun-chip4` is this set.
 
@@ -53,13 +72,13 @@ The code name `fun-chip4` is this set.
 
 Parry is a better **name** for Block. Same numbers (`parry-for-block` in `catalog.ts`).
 
-**Do not drop Push** while Parry still means “I beat Strike.” Tried (`npm run sim:catalog`):
+**Do not drop Push** while Parry still means “I beat Strike.” Tried (`npm run sim:catalog`, even mix vs one-button):
 
 | Set | Idea | Result |
 |-----|------|--------|
-| Strike, Parry, Heal | Drop Push. Clean cycle. | Always-Parry beats a mixer (~24%). Heal is too weak at full HP. Long fights, few KOs. |
+| Strike, Parry, Heal | Drop Push. Clean cycle. | Always-Parry beats even mix (~24% mix win). Heal too weak at full HP. Long fights, few KOs. |
 | + Back that ties Strike, nothing vs Parry | Neutral Back | Back is never better than Parry. Dead. |
-| + Back gains 10 or 20 vs Parry | “Partial/free heal on Parry” | Back still unused. Same always-Parry problem. If Back heals as much as Heal and Strike only ties, Heal is the stupid one. |
+| + Back gains 10 or 20 vs Parry | “Partial/free heal on Parry” | Back still unused. Same always-Parry problem. |
 | Parry also beats Push | Grab loses to Parry | Push is never better than Strike. Dead grab. |
 | Parry vs Strike is 0/0 | A real shield | Strike is the only move. |
 
@@ -83,26 +102,27 @@ Same four combat moves plus Back and Forward.
 
 If Back vs Strike dealt 18, Back would only be correct vs Push (feels like a trap). If Back made Strike *and* Push miss *and* left you far away, Back would beat every attack (Parry useless).
 
-Someone who only runs vs someone who only Strikes mostly **ties** (20 turns of 0–0). Not a winning strategy — Heal when they never attack.
+Symmetric “always Back vs always Strike” mostly **ties** — not a winning strategy. The harder case is **clock-turtle**: already ahead (tested 88 vs 72 HP), Back/Parry to run out the 20-turn cap. On `lunge-strike-max2`, Duelist only wins **~35%** vs clock-turtle — **a real gap before shipping walking**. Symmetric turtle-far is fine (~77% Duelist win).
 
-**If you add walking:** 18/20/winner-loses-4, Strike steps 1, Push does not, max one step apart. Six buttons. Packs in `bin/sim/space.ts`; `npm run sim:space`. Broken if “always walk away” or “always Heal from far” beats a normal player.
+**If you add walking:** 18/20/winner-also-loses-4, Strike steps 1, Push does not, max one step apart. Six buttons. Packs in `bin/sim/space.ts`; `npm run sim:space`. Broken if loop bots beat Duelist — **clock-turtle with a lead currently qualifies.**
 
-Distance in code: `1` = adjacent, `2` = one step apart. `close[]` is Strike, Push, Block, Heal, Back, Forward (positive = closer). Recommended pack: `lunge-strike-max2` (Strike close 1, Push 0, Back −1, Forward 1, max 2).
+Distance in code: `1` = adjacent, `2` = one step apart. `close[]` is Strike, Push, Block, Heal, Back, Forward (positive = closer). Recommended pack: `lunge-strike-max2`.
 
-Tried and rejected: attacks that do not step in (free turn for the runner); Strike steps 2 (Back never escapes a jab); both Strike and Push step in (Back is a wasted input); start one step away (runner is 50/50 again); Forward deals extra bump damage (doesn’t fix runaways); overlapping tiles (`minDist: 0` — looks like a sprite stack).
+Tried and rejected: attacks that do not step in (free turn for the runner); Strike steps 2; both Strike and Push step in; start one step away; Forward bump damage; overlapping tiles (`minDist: 0`).
 
 ---
 
 ## Numbers we already know
 
 - Strike = Push = Parry = 18 is an even three-way mix (~33% each). Heal is ~0% of that mix at full HP. You Heal when hurt and they are Parrying. Intended, not dead.
+- **Dead rounds:** when both pick the same combat move, nothing happens (~**34%** of turns for static even mix vs itself on `fun-chip4`; ~30% for HP-aware vs self). Matches still end (~92% KO). If playtests feel stall-y, try `fun-chip-clash` (both lose 2 on ties). `npm run sim` prints `dead` per ruleset.
 - Forcing all four into that infinite mix needs Heal ≈ 36 (`knife-edge-18-36`). Loses to “always Parry” in real 100-HP matches. Do not chase.
-- Clean hits (winner loses 0): `v1-18-20`. Feels more clinical (~16 turns, ~80% KO vs ~14 turns, ~92% KO with winner-also-loses-4).
+- Clean hits (winner loses 0): `v1-18-20`. Feels more clinical (~16 turns, ~80% KO vs ~14 turns, ~92% with winner-also-loses-4).
 - Parry must deal 18 back on a successful Strike. If it deals 0, Strike is the only move (`nullify-block`).
 - Heavier Push (16/20/18) without winner-also-loses-4 loses to “always Push.” With winner-also-loses-4, 18/20/22 can work (`fun-push-chip4`).
 - Stun (winner skips their next pick): too swingy; loses to one-button Strike/Push. Don’t.
-- Stamina: second bar. First tunings stalled to the turn cap (~0% KO). `stamina-light` / `stamina-block-tax` still stall. Not v1. Revisit if humans loop Strike or Parry forever.
-- Next Strike/Push deals +4 after a win (`fun-chip-bonus`): snowball without skipped turns. Extra rule; don’t stack with walking and stamina.
+- Stamina: second bar. First tunings stalled to the turn cap (~0% KO). Not v1.
+- **`fun-chip-bonus`** (winner loses 3, next Strike/Push +4 after a win): scores the same as `fun-chip4` in sims (~71). Left out of v1 for **scope** (extra state), not balance. If wins feel weightless in human play, try this before adding stun or stamina.
 
 Other named sets live in `bin/sim/rulesets.ts`. Copy a `defaults({ name: '...' })`, then `npm run sim`. `clashChip` = both lose that HP when they pick the same combat move.
 
@@ -112,10 +132,23 @@ Other named sets live in `bin/sim/rulesets.ts`. Copy a `defaults({ name: '...' }
 
 - Parry/Block deals 0 vs Strike
 - Stun as the punish
-- Heal 15 (Push is better in every matchup)
+- Heal 15 on **clean hits** (`v1-18-20`) — Push dominates Heal in the static matrix
 - Drop Push while Parry still only beats Strike
 - Attacks that do not step in, plus Back
 - Shield-Parry (tie vs Strike) plus Push
 - Parry that also beats Push
 - Inflating Heal to ~36 so all four show up in the infinite mix
 - Stamina as the first version
+
+---
+
+## Next steps (implementation)
+
+Full handoff for a new agent session: **`docs/handoff-combat-v1.md`**.
+
+1. **Shared engine import** — Game imports engine (`src/engine/` or `bin/sim/`). `Fight.ts` calls engine only; zero payoff math in Phaser.
+2. **Combat v1 in Phaser** — Turn picks, HP bars, KO / timeout win. View layer only.
+3. **Rename in UI** — Block → Parry; keep Push or label Grab/Trip.
+4. **Human playtest** — Feel only (dead rounds, win weight). Balance stays on `npm run sim`.
+5. **Walking (blocked on clock-turtle)** — Clock-turtle at 88 vs 72 wins ~65% today — tune before shipping.
+6. **Backlog** — Menu, restart, audio (`docs/backlog.md`).

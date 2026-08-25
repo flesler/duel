@@ -5,6 +5,8 @@
 import space, { type SpaceRules } from './sim/space.ts'
 
 const GAMES = 400
+/** Duelist behind; Clock-turtle ahead — tests running out the turn cap. */
+const CLOCK_START = { hpA: 72, hpB: 88 }
 
 function pct(n: number): string {
 	return `${(n * 100).toFixed(0)}%`
@@ -24,12 +26,13 @@ function evalPack(rules: SpaceRules) {
 	const vsRunner = space.runSpace(d, space.runner(), rules, GAMES, 3)
 	const vsSnipe = space.runSpace(d, space.snipeHeal(rules), rules, GAMES, 5)
 	const vsTurtle = space.runSpace(d, space.turtleFar(rules), rules, GAMES, 7)
+	const vsClock = space.runSpace(d, space.leadingClockTurtle(rules), rules, GAMES, 21, CLOCK_START)
 	const vsRush = space.runSpace(d, space.rushdown(rules), rules, GAMES, 9)
 	const vsStrike = space.runSpace(d, space.spacePure('Strike'), rules, GAMES, 11)
 	const vsPush = space.runSpace(d, space.spacePure('Push'), rules, GAMES, 13)
 	const vsBlock = space.runSpace(d, space.spacePure('Block'), rules, GAMES, 15)
 	const vsFwd = space.runSpace(d, space.spacePure('Forward'), rules, GAMES, 17)
-	const worstLoop = Math.min(vsRunner.fairA, vsSnipe.fairA, vsTurtle.fairA)
+	const worstLoop = Math.min(vsRunner.fairA, vsSnipe.fairA, vsTurtle.fairA, vsClock.fairA)
 	const fairMelee = Math.min(vsStrike.fairA, vsPush.fairA, vsBlock.fairA)
 	const even = 1 - Math.abs(vsSelf.fairA - 0.5) * 2
 	const move = (vsSelf.usageA[4] + vsSelf.usageA[5]) / (vsSelf.usageA.reduce((a, b) => a + b, 0) || 1)
@@ -42,14 +45,15 @@ function evalPack(rules: SpaceRules) {
 		(move >= 0.04 && move <= 0.45 ? 8 : move * 5) +
 		vsRush.fairA * 10
 
-	return { rules, vsSelf, vsRunner, vsSnipe, vsTurtle, vsRush, vsStrike, vsPush, vsBlock, vsFwd, worstLoop, score }
+	return { rules, vsSelf, vsRunner, vsSnipe, vsTurtle, vsClock, vsRush, vsStrike, vsPush, vsBlock, vsFwd, worstLoop, score }
 }
 
 const rows = space.spacePacks.map(evalPack)
 rows.sort((a, b) => b.score - a.score)
 
-console.log('Movement packs. Duelist should beat Runner / snipe-heal / turtle-far (no free escape).')
-console.log('close[] = Strike, Push, Block, Heal, Back, Forward (positive = closer).\n')
+console.log('Movement packs. Duelist should beat Runner / snipe-heal / turtle-far / clock-turtle (no free escape).')
+console.log('close[] = Strike, Push, Block, Heal, Back, Forward (positive = closer).')
+console.log(`Clock-turtle test: Duelist ${CLOCK_START.hpA} HP vs turtle ${CLOCK_START.hpB} HP.\n`)
 console.log(
 	'pack'.padEnd(26) +
 	'self'.padStart(6) +
@@ -59,6 +63,7 @@ console.log(
 	'run'.padStart(6) +
 	'snp'.padStart(6) +
 	'tur'.padStart(6) +
+	'clk'.padStart(6) +
 	'rsh'.padStart(6) +
 	'S/P/B'.padStart(10) +
 	'move'.padStart(14) +
@@ -75,6 +80,7 @@ for (const r of rows) {
 		pct(r.vsRunner.fairA).padStart(6) +
 		pct(r.vsSnipe.fairA).padStart(6) +
 		pct(r.vsTurtle.fairA).padStart(6) +
+		pct(r.vsClock.fairA).padStart(6) +
 		pct(r.vsRush.fairA).padStart(6) +
 		`${pct(r.vsStrike.fairA)}/${pct(r.vsPush.fairA)}/${pct(r.vsBlock.fairA)}`.padStart(10) +
 		usageMove(r.vsSelf.usageA).padStart(14) +
@@ -83,6 +89,12 @@ for (const r of rows) {
 }
 
 const best = rows[0]
+const max2 = rows.find((r) => r.rules.name === 'lunge-strike-max2')
 console.log('\nBest vs run-away loops:', best.rules.name)
+if (max2) {
+	console.log(
+		`  lunge-strike-max2: clock-turtle ${pct(max2.vsClock.fairA)}  turtle-far ${pct(max2.vsTurtle.fairA)}  dead ${pct(max2.vsSelf.deadRoundRate)}`,
+	)
+}
 console.log('  close', best.rules.close.join(','), 'Srange', best.rules.strikeRange, 'Prange', best.rules.pushRange, 'max', best.rules.maxDist, 'ram', best.rules.ram, 'healMax', best.rules.healMaxDist)
-console.log('  Columns run/snp/tur = Duelist fair win vs Runner / Snipe-heal / Turtle-far (want high).')
+console.log('  Columns run/snp/tur/clk = Duelist fair win vs Runner / Snipe-heal / Turtle-far / Clock-turtle (want high).')

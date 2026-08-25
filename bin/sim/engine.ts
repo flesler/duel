@@ -483,6 +483,8 @@ export type MatchResult = {
 	usageA: number[]
 	usageB: number[]
 	ko: boolean
+	/** Turns where both players' HP was unchanged. */
+	deadRounds: number
 }
 
 function stunPunish(actor: number, rules: Ruleset, bonus: number): number {
@@ -539,6 +541,7 @@ export function playMatch(
 	const historyB: { me: Action; opp: Action }[] = []
 	const usageA = [0, 0, 0, 0]
 	const usageB = [0, 0, 0, 0]
+	let deadRounds = 0
 	const rngA = createRng(seed)
 	const rngB = createRng(seed ^ 0x9e3779b9)
 
@@ -615,6 +618,9 @@ export function playMatch(
 			}
 		}
 
+		if (dA === 0 && dB === 0) {
+			deadRounds++
+		}
 		hpA = clampHp(hpA + dA, maxHp)
 		hpB = clampHp(hpB + dB, maxHp)
 		if (a >= 0) {
@@ -644,6 +650,7 @@ export function playMatch(
 		usageA,
 		usageB,
 		ko: hpA <= 0 || hpB <= 0,
+		deadRounds,
 	}
 }
 
@@ -654,6 +661,8 @@ export type Series = {
 	games: number
 	avgTurns: number
 	koRate: number
+	/** Share of turns where neither HP changed. */
+	deadRoundRate: number
 	usageA: number[]
 }
 
@@ -669,6 +678,7 @@ export function runSeries(
 	let draws = 0
 	let totalTurns = 0
 	let kos = 0
+	let deadRounds = 0
 	const usageA = [0, 0, 0, 0]
 	for (let i = 0; i < games; i++) {
 		const r = playMatch(stratA, stratB, rules, seed + i * 17)
@@ -680,6 +690,7 @@ export function runSeries(
 			draws++
 		}
 		totalTurns += r.turns
+		deadRounds += r.deadRounds
 		if (r.ko) {
 			kos++
 		}
@@ -694,6 +705,7 @@ export function runSeries(
 		games,
 		avgTurns: totalTurns / games,
 		koRate: kos / games,
+		deadRoundRate: totalTurns ? deadRounds / totalTurns : 0,
 		usageA,
 	}
 }

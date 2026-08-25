@@ -177,6 +177,34 @@ export function turtleFar(rules: SpaceRules): SpaceStrategy {
 	}
 }
 
+/** Ahead on HP: Back to burn clock, Parry when cornered, Heal when safe. */
+export function leadingClockTurtle(rules: SpaceRules): SpaceStrategy {
+	return {
+		name: 'Clock-turtle',
+		choose(ctx) {
+			const lead = ctx.hpMe - ctx.hpOpp
+			if (lead <= 0) {
+				if (ctx.dist > rules.minDist) {
+					return 5
+				}
+				return pick([0.35, 0.35, 0.2, 0.1, 0, 0], ctx.rng)
+			}
+			if (ctx.dist < rules.maxDist) {
+				return 4
+			}
+			if (ctx.hpMe < 96 && lead >= 12) {
+				return 3
+			}
+			if (ctx.dist <= rules.strikeRange && ctx.rng() < 0.7) {
+				return 2
+			}
+			return 4
+		},
+	}
+}
+
+export type SpaceStart = { hpA?: number; hpB?: number }
+
 export function rushdown(rules: SpaceRules): SpaceStrategy {
 	return {
 		name: 'Rushdown',
@@ -195,6 +223,7 @@ type SpaceMatch = {
 	ko: boolean
 	usageA: number[]
 	avgDist: number
+	deadRounds: number
 }
 
 export function playSpace(
@@ -202,12 +231,14 @@ export function playSpace(
 	stratB: SpaceStrategy,
 	rules: SpaceRules,
 	seed: number,
+	start?: SpaceStart,
 ): SpaceMatch {
 	const maxHp = rules.damage.hp
-	let hpA = maxHp
-	let hpB = maxHp
+	let hpA = start?.hpA ?? maxHp
+	let hpB = start?.hpB ?? maxHp
 	let dist = rules.startDist
 	let distSum = 0
+	let deadRounds = 0
 	const historyA: { me: SpaceAction; opp: SpaceAction }[] = []
 	const historyB: { me: SpaceAction; opp: SpaceAction }[] = []
 	const usageA = [0, 0, 0, 0, 0, 0]
@@ -221,6 +252,9 @@ export function playSpace(
 		const o = resolveSpace(a, b, dist, rules)
 		dist = o.dist
 		distSum += dist
+		if (o.dA === 0 && o.dB === 0) {
+			deadRounds++
+		}
 		hpA = clamp(hpA + o.dA, 0, maxHp)
 		hpB = clamp(hpB + o.dB, 0, maxHp)
 		historyA.push({ me: SPACE_ACTIONS[a], opp: SPACE_ACTIONS[b] })
@@ -237,7 +271,7 @@ export function playSpace(
 		winner = 'B'
 	}
 	const turns = historyA.length
-	return { winner, turns, ko: hpA <= 0 || hpB <= 0, usageA, avgDist: turns ? distSum / turns : dist }
+	return { winner, turns, ko: hpA <= 0 || hpB <= 0, usageA, avgDist: turns ? distSum / turns : dist, deadRounds }
 }
 
 export type SpaceSeries = {
@@ -245,6 +279,7 @@ export type SpaceSeries = {
 	avgTurns: number
 	koRate: number
 	avgDist: number
+	deadRoundRate: number
 	usageA: number[]
 }
 
@@ -254,21 +289,24 @@ export function runSpace(
 	rules: SpaceRules,
 	games = 500,
 	seed = 1,
+	start?: SpaceStart,
 ): SpaceSeries {
 	let wins = 0
 	let draws = 0
 	let turns = 0
 	let kos = 0
 	let dist = 0
+	let deadRounds = 0
 	const usageA = [0, 0, 0, 0, 0, 0]
 	for (let i = 0; i < games; i++) {
-		const r = playSpace(a, b, rules, seed + i * 19)
+		const r = playSpace(a, b, rules, seed + i * 19, start)
 		if (r.winner === 'A') {
 			wins++
 		} else if (r.winner === 'draw') {
 			draws++
 		}
 		turns += r.turns
+		deadRounds += r.deadRounds
 		if (r.ko) {
 			kos++
 		}
@@ -282,6 +320,7 @@ export function runSpace(
 		avgTurns: turns / games,
 		koRate: kos / games,
 		avgDist: dist / games,
+		deadRoundRate: turns ? deadRounds / turns : 0,
 		usageA,
 	}
 }
@@ -346,6 +385,7 @@ const space = {
 	runner,
 	snipeHeal,
 	turtleFar,
+	leadingClockTurtle,
 	rushdown,
 	spacePure,
 }

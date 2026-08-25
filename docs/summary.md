@@ -13,9 +13,17 @@ npm run lint      # eslint (npm run fix to autofix)
 ```
 
 - `npm run server` runs `preserver` (regenerates asset data in dev mode, copies `templates/index.html` → `public/index.html`, copies `phaser.min.js` → `public/lib/`) then `tsup --watch` + `serve -l 4000 public dist`.
-- There is no test suite. Verify with `typecheck` + `lint` and by playing in the browser.
+- There is no test suite yet. **Rules and balance:** `npm run sim` (headless engine in `bin/sim/`). **UI:** typecheck + lint; visual play is for feel only, not rule verification (see `.cursor/rules/headless-engine.mdc`).
 
-**Turn-based rules (not in the Phaser game yet):** simultaneous picks, 100 HP. Ship **Strike / Push / Parry / Heal** at 18 / 18 / 18 / 20, and the winner of a connecting hit also loses 4 HP. Call Block **Parry** in the game; keep Push (anti-Parry grab — they stumble, no tile shove). Optional walking: Strike steps 1, Push does not, **Back vs Strike is a tie**, max one step of gap. Full matchups, rejected experiments, and `npm run sim*` commands: **`docs/simulations.md`**.
+**Turn-based rules (not wired into Phaser yet):** simultaneous picks, 100 HP. Ship **Strike / Push / Parry / Heal** at 18 / 18 / 18 / 20, winner of a connecting hit also loses 4 HP. Full design: **`docs/simulations.md`**.
+
+## Headless engine (key rule)
+
+**All rules and execution are headless.** `bin/sim/engine.ts` (and `space.ts`, `catalog.ts`) resolve moves, HP, and wins with no Phaser. `npm run sim*` is the authority for balance.
+
+**Phaser (`src/`) is view-only.** It may read engine state and send player picks; it must not implement damage, matchups, or win logic on its own. When turn-based combat lands in `Fight.ts`, import the shared engine — do not duplicate tables in the UI layer.
+
+See `.cursor/rules/headless-engine.mdc`.
 
 ## How it works (big picture)
 
@@ -40,13 +48,16 @@ templates/index.html        # HTML shell, copied to public/ at build
 public/                     # build output dir (index.html, lib/, dist/)
 assets/                     # raw art/audio sources (atlases, spritesheets, images, audio, fonts)
 bin/generate_assets_data.ts  # codegen: assets/ → src/assets.ts
+bin/sim/engine.ts           # headless rules (resolve, matches) — no Phaser
+bin/sim/space.ts            # movement layer on engine
+bin/sim/rulesets.ts         # named tunings; npm run sim
 src/
   game.ts                   # entry: Phaser.Game + font loading + state boot
   config.ts                 # all game constants
   assets.ts                 # GENERATED — do not hand-edit
   states/Boot.ts            # minimal init, → Preloader
   states/Preloader.ts       # asset loading, → Fight
-  states/Fight.ts           # gameplay
+  states/Fight.ts           # gameplay UI (must delegate rules to engine)
   entities/Char.ts          # fighter + character state machine
   entities/Scene.ts         # arena
   input/Controller.ts       # input abstraction
@@ -65,3 +76,4 @@ tsup.config.ts              # bundle config (entry src/game.ts → dist)
 - Add a new state: create `src/states/<Name>.ts` extending `Phaser.State` (or follow `Boot`/`Preloader`), wire it into the `state.add` block in `src/game.ts`.
 - Build quirk: `dist` build sets `DIST=1` env var for tsup; asset keys may differ between dev and dist generated data (`--dev` flag).
 - Lint uses `@stylistic` formatting; run `npm run fix` after edits.
+- **Headless engine:** rules only in `bin/sim/`; Phaser never applies damage or win logic. `.cursor/rules/headless-engine.mdc`.

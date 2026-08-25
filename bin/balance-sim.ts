@@ -67,10 +67,14 @@ function printEval(e: ReturnType<typeof evaluate>) {
 	for (let i = 0; i < 4; i++) {
 		console.log(sim.ACTIONS[i].padEnd(6) + e.matrix[i].map((v) => String(v).padStart(8)).join(''))
 	}
-	console.log(`Eq vs Eq: A ${pct(fairWin(e.vsSelf))}  draws ${pct(e.vsSelf.draws / e.vsSelf.games)}  turns ${e.vsSelf.avgTurns.toFixed(1)}  KO ${pct(e.vsSelf.koRate)}`)
+	console.log(
+		`Eq vs Eq: A ${pct(fairWin(e.vsSelf))}  draws ${pct(e.vsSelf.draws / e.vsSelf.games)}  turns ${e.vsSelf.avgTurns.toFixed(1)}  KO ${pct(e.vsSelf.koRate)}  dead ${pct(e.vsSelf.deadRoundRate)}`,
+	)
 	console.log('Eq vs pure (fair): ' + e.vsPures.map((v) => `${v.action} ${pct(v.win)}`).join('  '))
 	console.log('Eq vs styles: ' + e.vsStyles.map((v) => `${v.name} ${pct(fairWin(v.series))}`).join('  '))
-	console.log(`HP-aware vs self: turns ${e.awareSelf.avgTurns.toFixed(1)}  KO ${pct(e.awareSelf.koRate)}  Heal use ${pct(e.awareHeal)}`)
+	console.log(
+		`HP-aware vs self: turns ${e.awareSelf.avgTurns.toFixed(1)}  KO ${pct(e.awareSelf.koRate)}  dead ${pct(e.awareSelf.deadRoundRate)}  Heal use ${pct(e.awareHeal)}`,
+	)
 	console.log(`score ${e.score.toFixed(1)}`)
 }
 
@@ -78,6 +82,7 @@ const results = rulesets.candidates.map(evaluate)
 results.sort((a, b) => b.score - a.score)
 
 console.log('Duel ruleset comparison')
+console.log('Opponents: Nash mix vs one-button; styles are fixed mixes; HP-aware counters last move.')
 console.log('Heal often has 0% static Nash — that is expected. Score favors a even Strike/Push/Block triangle, match fairness, and HP-aware Heal usage.\n')
 console.log(
 	'name'.padEnd(24) +
@@ -88,6 +93,7 @@ console.log(
 	'vsPure'.padStart(8) +
 	'Huse'.padStart(7) +
 	'turns'.padStart(7) +
+	'dead'.padStart(7) +
 	'score'.padStart(8),
 )
 for (const e of results) {
@@ -101,6 +107,7 @@ for (const e of results) {
 		pct(e.worstFair).padStart(8) +
 		pct(e.awareHeal).padStart(7) +
 		e.vsSelf.avgTurns.toFixed(1).padStart(7) +
+		pct(e.vsSelf.deadRoundRate).padStart(7) +
 		e.score.toFixed(1).padStart(8),
 	)
 }

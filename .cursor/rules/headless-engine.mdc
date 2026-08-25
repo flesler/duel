@@ -1,0 +1,43 @@
+---
+description: Headless game engine owns rules; Phaser is view-only
+alwaysApply: true
+---
+
+# Headless engine, dumb UI
+
+All **rules and execution** live in a headless module with **no Phaser, DOM, or rendering**. The browser client is a **view**: it shows state and sends player intents. Never verify balance or correctness by playing visually.
+
+## Where logic lives
+
+| Layer | Owns | Does not own |
+|-------|------|----------------|
+| **Engine** (`bin/sim/` today; shared import for game) | Move tables, damage, HP, distance, turn order, win/lose, match state | Sprites, tweens, audio, input keys |
+| **UI** (`src/states/`, `src/entities/`) | Layout, animations, HUD, input → intent | Damage math, “what beats what”, timeouts |
+
+One source of truth. `npm run sim` and the game must call the **same** `resolve` / `playMatch` (or equivalent) — no parallel rule copies in `Fight.ts`.
+
+## Flow
+
+```
+input → intent (e.g. pick Strike) → engine.step(state, intents) → new state
+                                              ↓
+                                    UI reads state, plays FX
+```
+
+## Forbidden in UI code
+
+- Payoff / matchup tables inlined in Phaser states
+- `if (action === 'Strike') hp -= 18` (or reading damage from `config` and applying it locally)
+- Win conditions or turn caps implemented only in `Fight.ts`
+- “Looks right in the browser” as the only test for a rule change
+
+## How to verify
+
+- Rule or number change → `npm run sim` (and related `sim:*` scripts) or a focused script against the engine
+- UI change → typecheck, lint, optional manual check for **feel** only (animation timing, readability) — not whether Parry beats Strike
+
+## When adding features
+
+1. Implement and test in the headless engine first.
+2. Expose plain data (HP, distance, last outcome, winner).
+3. Wire Phaser to display that state; animations may lag or embellish but must not change outcomes.
