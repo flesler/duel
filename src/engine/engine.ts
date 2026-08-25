@@ -78,7 +78,7 @@ export function resolve(a: number, b: number, rules: Ruleset): Outcome {
 	const C = rules.counter
 	const H = rules.heal
 	const chip = rules.chip
-	const clash = -rules.clashChip
+	const clash = rules.clashChip === 0 ? 0 : -rules.clashChip
 	const none: Outcome = { dA: 0, dB: 0, stunA: false, stunB: false, hitA: false, hitB: false }
 
 	const hit = (attackerIsA: boolean, dmg: number, doStun = true): Outcome => {

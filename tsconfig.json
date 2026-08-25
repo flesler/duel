@@ -18,6 +18,7 @@
 		"types": ["node", "phaser"],
 		"baseUrl": ".",
 		"paths": {
+			"src/*": ["src/*"],
 			"phaser": ["src/phaser-shim.ts"],
 			"assets/*": ["assets/*"]
 		}
