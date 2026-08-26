@@ -11,7 +11,7 @@ All **rules and execution** live in a headless module with **no Phaser, DOM, or 
 
 | Layer | Owns | Does not own |
 |-------|------|----------------|
-| **Engine** (`bin/sim/` today; shared import for game) | Move tables, damage, HP, distance, turn order, win/lose, match state | Sprites, tweens, audio, input keys |
+| **Engine** (`src/engine/`; `bin/sim/` re-exports for sim scripts) | Move tables, damage, HP, distance, turn order, win/lose, match state | Sprites, tweens, audio, input keys |
 | **UI** (`src/states/`, `src/entities/`) | Layout, animations, HUD, input → intent | Damage math, “what beats what”, timeouts |
 
 One source of truth. `npm run sim` and the game must call the **same** `resolve` / `playMatch` (or equivalent) — no parallel rule copies in `Fight.ts`.

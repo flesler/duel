@@ -144,11 +144,9 @@ Other named sets live in `bin/sim/rulesets.ts`. Copy a `defaults({ name: '...' }
 
 ## Next steps (implementation)
 
-Full handoff for a new agent session: **`docs/handoff-combat-v1.md`**.
+Combat v1 is in the game (`src/states/Fight.ts` + `src/engine/match.ts`). Remaining:
 
-1. **Shared engine import** — Game imports engine (`src/engine/` or `bin/sim/`). `Fight.ts` calls engine only; zero payoff math in Phaser.
-2. **Combat v1 in Phaser** — Turn picks, HP bars, KO / timeout win. View layer only.
-3. **Rename in UI** — Block → Parry; keep Push or label Grab/Trip.
-4. **Human playtest** — Feel only (dead rounds, win weight). Balance stays on `npm run sim`.
-5. **Walking (blocked on clock-turtle)** — Clock-turtle at 88 vs 72 wins ~65% today — tune before shipping.
-6. **Backlog** — Menu, restart, audio (`docs/backlog.md`).
+1. **Human playtest** — Feel only (dead rounds, win weight). Balance stays on `npm run sim`.
+2. **Fight polish** — Audio on reveal, damage numbers, clearer pick UX (`docs/backlog.md`).
+3. **Walking (blocked on clock-turtle)** — Tune with `npm run sim:space` before shipping.
+4. **Online** — `docs/multiplayer.md`.

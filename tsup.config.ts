@@ -12,7 +12,7 @@ export default defineConfig((options) => ({
   // Names the IIFE bundle's exports in global scope
   globalName: 'Duel',
   target: 'es2020',
-  outDir: 'dist',
+  outDir: 'public/dist',
   clean: true,
   minify: isDist && !options.watch,
   sourcemap: true,
@@ -36,8 +36,8 @@ export default defineConfig((options) => ({
   // tsup names IIFE entries '<name>.global.js'; the HTML expects dist/game.js
   onSuccess: () => {
     for (const file of ['game.global.js', 'game.global.js.map']) {
-      if (existsSync(`dist/${file}`)) {
-        renameSync(`dist/${file}`, `dist/${file.replace('.global', '')}`)
+      if (existsSync(`public/dist/${file}`)) {
+        renameSync(`public/dist/${file}`, `public/dist/${file.replace('.global', '')}`)
       }
     }
   },

@@ -1,5 +1,29 @@
 # Phaser 2.11 (phaser-ce) → Phaser 4.2.1 Migration
 
+**Status: complete** (Aug 2026).
+
+Migrated to Phaser 4.2.1 with Phaser loaded from CDN (`templates/index.html`). Game code uses `Phaser.Scene`, `src/phaser-shim.ts` maps `import Phaser from 'phaser'` to `globalThis.Phaser` at bundle time.
+
+## What changed
+
+- `phaser-ce` removed; `phaser@4.2.1` for types only
+- All scenes ported: Boot, Preloader, Select, Fight
+- `Char` → `Phaser.Physics.Arcade.Sprite` + `scene.anims.create`
+- Asset `Loader` uses Phaser 4 cache/texture APIs
+- Build output: `public/dist/game.js` (single static root for `npm run serve`)
+
+## Verify
+
+```bash
+npm run lint:full
+npm run build
+npm run serve    # http://localhost:4000 — select, fight, audio, HUD
+```
+
+Historical WIP notes below are kept for archaeology only.
+
+---
+
 Started Aug 19, 2026. PAUSED mid-migration — this is the handoff doc for the next session.
 Decision: migrate to latest Phaser (4.2.1), keep Phaser as external in the web build (CDN `<script>` in index.html). We can always revert: pre-migration code is intact at the commit just before the WIP commit.
 
@@ -15,7 +39,7 @@ Decision: migrate to latest Phaser (4.2.1), keep Phaser as external in the web b
   - `src/entities/Char.ts` — FULL REWRITE, believed-correct: `extends Phaser.Physics.Arcade.Sprite`, constructor `(scene: Phaser.Scene, name, direction)`, per-state anims pre-created via `scene.anims.create(\`${name}-${state}\`, { texture, frames: number[], frameRate, repeat })`, `setCharState(name)` (no `state` field — Phaser 4's base GameObject has a `state: string|number` property; naming clash caused duplicate-identifier errors), exports `State` interface, `restore()`/`face()`, `update()` uses `performance.now()`, direction flip via `scale.x`.
   - `src/game.ts` — REWRITE: `new Phaser.Game({ parent: 'game', width, height, transparent, render: WEBGL|CANVAS, physics: { default: 'arcade', arcade: { debug: false } }, scale: { mode: Scale.RESIZE, autoCenter: Scale.CENTER_BOTH }, scene: [Boot, Preloader, Select, Fight] })`, `export default game`. No more `window.onload`/`game.state.start`.
 
-Everything else is still written against the Phaser 2 API. **Build is RED.** The TypeScript error list (post-retarget) is the authoritative list of what Phaser 4 changed; notable ones:
+Everything else is still written against the Phaser 2 API. **Build is RED.** The typecheck error list (post-retarget) is the authoritative list of what Phaser 4 changed; notable ones:
 
 ```
 Phaser.Color — does not exist (use number literals, e.g. 0x000000)
@@ -47,7 +71,7 @@ textures.generateTextureNames — gone (use frames arrays)
 9. Check `src/types/globals.d.ts` — likely delete (Phaser 4 ships types; the CE global-namespace shim may now conflict or be dead).
 10. `package.json` `assets:script` still references phaser-ce paths — fix or drop; `npm run assets` must still regenerate `src/assets.ts`.
 11. Update `README.md` (Phaser 4 note) and `docs/backlog.md`; re-verify with `npm run lint:full`.
-12. **Browser smoke test** (`npm run server`): assets load from CDN bundle, select screen, countdown, combat, audio, HUD. Balance untested since first build.
+12. **Browser smoke test** (`npm run serve`): assets load from CDN bundle, select screen, countdown, combat, audio, HUD. Balance untested since first build.
 
 ## Key decisions / notes
 

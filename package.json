@@ -4,8 +4,8 @@
   "version": "0.9.0",
   "private": true,
   "scripts": {
-    "preserver": "npm run assets:dev && mkdir -p public/lib && cp templates/index.html public/",
-    "server": "concurrently -k \"npm run build:watch\" \"serve -l 4000 public dist\"",
+    "preserve": "npm run assets:dev && mkdir -p public && cp templates/index.html public/",
+    "serve": "concurrently -k \"npm run build:watch\" \"serve -l 4000 public\"",
     "prebuild": "npm run assets && mkdir -p public/lib && cp templates/index.html public/",
     "build": "echo-cli 'Building ...' && DIST=1 tsup && echo-cli 'Build Complete ✔'",
     "build:watch": "tsup --watch",

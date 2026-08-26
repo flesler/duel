@@ -88,7 +88,7 @@ Timeout default is **Parry** (safe option), not Heal.
 ### Local
 
 ```bash
-npm run server       # game at http://localhost:4000
+npm run serve       # game at http://localhost:4000
 npx wrangler dev     # API at :8787
 ```
 
