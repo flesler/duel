@@ -4,7 +4,8 @@ import { defineConfig } from 'vitest/config'
 import type { TestModule } from 'vitest/node'
 import type { Reporter } from 'vitest/reporters'
 
-const APP_NAME = path.basename(__dirname)
+const root = import.meta.dirname
+const APP_NAME = path.basename(root)
 
 function pickReporter(): Reporter | 'dot' | 'verbose' {
 	if (process.env.MINIMAL === '1') {
@@ -34,12 +35,9 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			src: path.resolve(__dirname, './src'),
-			phaser: path.resolve(__dirname, './src/phaser-shim.ts'),
+			src: path.resolve(root, 'src'),
+			phaser: path.resolve(root, 'src/phaser-shim.ts'),
 		},
-	},
-	esbuild: {
-		target: 'node18',
 	},
 })
 
