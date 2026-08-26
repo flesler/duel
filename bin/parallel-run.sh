@@ -1,8 +1,8 @@
 #!/bin/bash
 # Run npm scripts in parallel (independent gates only).
 #
-#   bash bin/parallel-run.sh test:types:src test:types:bin lint:fix
-#   bash bin/parallel-run.sh --silent lint:fix build test:unit
+#   bin/parallel-run.sh test:types:src test:types:bin lint:fix
+#   bin/parallel-run.sh --silent lint:fix build test:unit
 set -euo pipefail
 
 usage() {
