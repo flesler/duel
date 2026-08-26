@@ -1,11 +1,12 @@
-const importNewlinesPlugin = require('eslint-plugin-import-newlines')
-const unusedImportsPlugin = require('eslint-plugin-unused-imports')
-const eslintJs = require('@eslint/js')
-const tsParser = require('@typescript-eslint/parser')
-const tsPlugin = require('@typescript-eslint/eslint-plugin')
-const stylisticPlugin = require('@stylistic/eslint-plugin')
+import { defineConfig } from 'eslint/config'
+import eslintJs from '@eslint/js'
+import tsParser from '@typescript-eslint/parser'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import stylisticPlugin from '@stylistic/eslint-plugin'
+import importNewlinesPlugin from 'eslint-plugin-import-newlines'
+import unusedImportsPlugin from 'eslint-plugin-unused-imports'
 
-module.exports = [
+export default defineConfig([
 	{
 		ignores: ['node_modules', 'dist', 'public', '**/*.tsbuildinfo'],
 	},
@@ -81,4 +82,4 @@ module.exports = [
 			'no-useless-assignment': 'off',
 		},
 	},
-]
+])
