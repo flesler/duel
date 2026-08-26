@@ -6,6 +6,7 @@ import SceneBg from '../entities/Scene'
 import * as config from '../config'
 import * as selection from './selection'
 import { createMatch, submitPick, bothPicked, resolveTurn, beginNextTurn, DISPLAY, funChip4, type DuelMatch } from '../engine'
+import { fightLayout, hudBarX, safeBottomY, safeCenterX } from '../utils/fightLayout'
 
 type Flow = 'countdown' | 'pick' | 'reveal' | 'over'
 
@@ -21,6 +22,7 @@ export default class Fight extends Phaser.Scene {
 	private pickLabel1: Phaser.GameObjects.Text
 	private pickLabel2: Phaser.GameObjects.Text
 	private bars: { g: Phaser.GameObjects.Graphics; x: number; y: number; w: number; h: number; owner: Char }[] = []
+	private layout = fightLayout()
 
 	constructor() {
 		super({ key: 'Fight' })
@@ -35,13 +37,16 @@ export default class Fight extends Phaser.Scene {
 		this.controller1 = KeyboardController.createPlayer1(this)
 		this.controller2 = KeyboardController.createPlayer2(this)
 
-		this.banner = this.add.text(this.scale.width / 2, 50, '', { fontFamily: 'monospace', fontSize: '28px', color: '#ffffff' }).setOrigin(0.5).setVisible(false)
-		this.turnLabel = this.add.text(this.scale.width / 2, 82, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cccccc' }).setOrigin(0.5)
-		this.pickLabel1 = this.add.text(20, 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' })
-		this.pickLabel2 = this.add.text(this.scale.width - 20, 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' }).setOrigin(1, 0)
+		const { safeX, safeY, margin } = this.layout
+		const cx = safeCenterX(this.layout)
 
-		this.add.text(20, this.scale.height - 70, 'P1: SPACE Strike  D Push  W Parry  S Heal', { fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa' })
-		this.add.text(this.scale.width - 20, this.scale.height - 70, 'P2: ENTER Strike  → Push  ↑ Parry  ↓ Heal', { fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa' }).setOrigin(1, 0)
+		this.banner = this.add.text(cx, safeY + 50, '', { fontFamily: 'monospace', fontSize: '28px', color: '#ffffff' }).setOrigin(0.5).setVisible(false)
+		this.turnLabel = this.add.text(cx, safeY + 82, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cccccc' }).setOrigin(0.5)
+		this.pickLabel1 = this.add.text(safeX + margin, safeY + 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' })
+		this.pickLabel2 = this.add.text(safeX + this.layout.safeWidth - margin, safeY + 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' }).setOrigin(1, 0)
+
+		this.add.text(safeX + margin, safeBottomY(this.layout, 70), 'P1: SPACE Strike  D Push  W Parry  S Heal', { fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa' })
+		this.add.text(safeX + this.layout.safeWidth - margin, safeBottomY(this.layout, 70), 'P2: ENTER Strike  → Push  ↑ Parry  ↓ Heal', { fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa' }).setOrigin(1, 0)
 
 		this.createHUD()
 		this.syncHp()
@@ -64,20 +69,20 @@ export default class Fight extends Phaser.Scene {
 	}
 
 	private createHUD() {
-		const w = 250
-		const barH = 16
+		const { safeX, safeY, margin, hudBarWidth, hudBarHeight } = this.layout
 		this.bars = [this.player1, this.player2].map((p, i) => {
 			const g = this.add.graphics()
-			return { g, x: i === 0 ? 20 : this.scale.width - 20 - w, y: 20, w, h: barH, owner: p }
+			const player = (i === 0 ? 1 : 2) as 1 | 2
+			return { g, x: hudBarX(this.layout, player), y: safeY + margin, w: hudBarWidth, h: hudBarHeight, owner: p }
 		})
-		this.add.text(20, 42, 'P1', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' })
-		this.add.text(this.scale.width - 20, 42, 'P2', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' }).setOrigin(1, 0)
+		this.add.text(safeX + margin, safeY + 42, 'P1', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' })
+		this.add.text(safeX + this.layout.safeWidth - margin, safeY + 42, 'P2', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' }).setOrigin(1, 0)
 	}
 
 	private createPlayer(direction: 1 | -1, asset: string): Char {
 		const player = new Char(this, asset, direction)
 		player.setTile(direction === 1 ? 2 : config.TILES - 3)
-		player.y = this.scale.height - 30
+		player.y = safeBottomY(this.layout, 30)
 		return player
 	}
 

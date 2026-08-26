@@ -1,7 +1,7 @@
 import * as WebFontLoader from 'webfontloader'
 import Phaser from 'phaser'
-import { CustomWebFonts } from './assets'
-import { GameWidth, GameHeight } from './config'
+import { customFonts } from './boot/fonts'
+import { BgWidth, BgHeight } from './config'
 import Boot from './states/Boot'
 import Preloader from './states/Preloader'
 import Select from './states/Select'
@@ -11,8 +11,8 @@ function startGame() {
 	new Phaser.Game({
 		type: Phaser.AUTO,
 		parent: 'game',
-		width: GameWidth,
-		height: GameHeight,
+		width: BgWidth,
+		height: BgHeight,
 		backgroundColor: '#000000',
 		render: {
 			pixelArt: true,
@@ -20,7 +20,7 @@ function startGame() {
 			roundPixels: true,
 		},
 		scale: {
-			mode: Phaser.Scale.RESIZE,
+			mode: Phaser.Scale.FIT,
 			autoCenter: Phaser.Scale.CENTER_BOTH,
 		},
 		physics: {
@@ -34,18 +34,18 @@ function startGame() {
 window.onload = () => {
 	let webFontLoaderOptions: WebFontLoader.Config | null = null
 	const webFontsToLoad: string[] = GOOGLE_WEB_FONTS
+	const fonts = customFonts()
 
 	if (webFontsToLoad.length > 0) {
 		webFontLoaderOptions = webFontLoaderOptions || {}
 		webFontLoaderOptions.google = { families: webFontsToLoad }
 	}
 
-	if (Object.keys(CustomWebFonts).length > 0) {
+	if (fonts.length > 0) {
 		webFontLoaderOptions = webFontLoaderOptions || {}
-		webFontLoaderOptions.custom = { families: [], urls: [] }
-		for (const font in CustomWebFonts) {
-			webFontLoaderOptions.custom.families.push(CustomWebFonts[font].getFamily())
-			webFontLoaderOptions.custom.urls.push(CustomWebFonts[font].getCSS())
+		webFontLoaderOptions.custom = {
+			families: fonts.map(font => font.getFamily()),
+			urls: fonts.map(font => font.getCSS()),
 		}
 	}
 

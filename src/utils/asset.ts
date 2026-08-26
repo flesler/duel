@@ -1,70 +1,10 @@
 import Phaser from 'phaser'
 import * as Assets from '../assets'
+import { assetClasses, atlasDataType, atlasDataUrl, audioUrls, bitmapFontDataUrl, imageUrl } from './assetHelpers'
 
 export class Loader {
 	private static soundKeys: string[] = []
 	private static soundExtensionsPreference: string[] = SOUND_EXTENSIONS_PREFERENCE
-
-	private static loadImages(scene: Phaser.Scene) {
-		for (const image in Assets.Images) {
-			const asset = Assets.Images[image]
-			const name = asset.getName()
-			if (!scene.textures.exists(name)) {
-				for (const option in asset) {
-					if (option !== 'getName') {
-						scene.load.image(name, asset[option]())
-					}
-				}
-			}
-		}
-	}
-
-	private static loadSpritesheets(scene: Phaser.Scene) {
-		for (const spritesheet in Assets.Spritesheets) {
-			const asset = Assets.Spritesheets[spritesheet]
-			const name = asset.getName()
-			if (!scene.textures.exists(name)) {
-				let imageOption = null
-				for (const option in asset) {
-					if (option !== 'getName' && option !== 'getFrameWidth' && option !== 'getFrameHeight' && option !== 'getFrameMax' && option !== 'getMargin' && option !== 'getSpacing') {
-						imageOption = option
-					}
-				}
-				scene.load.spritesheet(name, asset[imageOption](), {
-					frameWidth: asset.getFrameWidth(),
-					frameHeight: asset.getFrameHeight(),
-					endFrame: asset.getFrameMax() - 1,
-					margin: asset.getMargin(),
-					spacing: asset.getSpacing(),
-				})
-			}
-		}
-	}
-
-	private static loadAtlases(scene: Phaser.Scene) {
-		for (const atlas in Assets.Atlases) {
-			const asset = Assets.Atlases[atlas]
-			const name = asset.getName()
-			if (!scene.textures.exists(name)) {
-				let imageOption = null
-				let dataOption = null
-				for (const option in asset) {
-					if (option === 'getXML' || option === 'getJSONArray' || option === 'getJSONHash') {
-						dataOption = option
-					} else if (option !== 'getName' && option !== 'Frames') {
-						imageOption = option
-					}
-				}
-				if (dataOption === 'getXML') {
-					scene.load.atlasXML(name, asset[imageOption](), asset.getXML())
-				} else if (dataOption === 'getJSONArray') {
-					scene.load.atlas(name, asset[imageOption](), asset.getJSONArray())
-				} else if (dataOption === 'getJSONHash') {
-					scene.load.atlas(name, asset[imageOption](), asset.getJSONHash())
-				}
-			}
-		}
-	}
 
 	private static orderAudioSourceArrayBasedOnSoundExtensionPreference(soundSourceArray: string[]): string[] {
 		let orderedSoundSourceArray: string[] = []
@@ -77,83 +17,130 @@ export class Loader {
 		return orderedSoundSourceArray
 	}
 
+	private static loadImages(scene: Phaser.Scene) {
+		for (const asset of assetClasses(Assets.Images)) {
+			const name = asset.getName()
+			const url = imageUrl(asset)
+			if (!url || scene.textures.exists(name)) {
+				continue
+			}
+			scene.load.image(name, url)
+		}
+	}
+
+	private static loadSpritesheets(scene: Phaser.Scene) {
+		for (const asset of assetClasses(Assets.Spritesheets)) {
+			const name = asset.getName()
+			const url = imageUrl(asset)
+			if (!url || scene.textures.exists(name)) {
+				continue
+			}
+			scene.load.spritesheet(name, url, {
+				frameWidth: (asset.getFrameWidth as () => number)(),
+				frameHeight: (asset.getFrameHeight as () => number)(),
+				endFrame: (asset.getFrameMax as () => number)() - 1,
+				margin: (asset.getMargin as () => number)(),
+				spacing: (asset.getSpacing as () => number)(),
+			})
+		}
+	}
+
+	private static loadAtlases(scene: Phaser.Scene) {
+		for (const asset of assetClasses(Assets.Atlases)) {
+			const name = asset.getName()
+			const image = imageUrl(asset)
+			const data = atlasDataUrl(asset)
+			const type = atlasDataType(asset)
+			if (!image || !data || !type || scene.textures.exists(name)) {
+				continue
+			}
+			if (type === 'xml') {
+				scene.load.atlasXML(name, image, data)
+			} else if (type === 'jsonArray') {
+				scene.load.atlas(name, image, data)
+			} else {
+				scene.load.atlas(name, image, data)
+			}
+		}
+	}
+
 	private static loadAudio(scene: Phaser.Scene) {
-		for (const audio in Assets.Audio) {
-			const asset = Assets.Audio[audio]
+		for (const asset of assetClasses(Assets.Audio)) {
 			const soundName = asset.getName()
 			this.soundKeys.push(soundName)
-			if (!scene.cache.audio.exists(soundName)) {
-				const audioTypeArray: string[] = []
-				for (const option in asset) {
-					if (option !== 'getName') {
-						audioTypeArray.push(asset[option]())
-					}
-				}
-				scene.load.audio(soundName, this.orderAudioSourceArrayBasedOnSoundExtensionPreference(audioTypeArray))
+			if (scene.cache.audio.exists(soundName)) {
+				continue
 			}
+			const sources = this.orderAudioSourceArrayBasedOnSoundExtensionPreference(audioUrls(asset))
+			if (sources.length === 0) {
+				continue
+			}
+			scene.load.audio(soundName, sources)
 		}
 	}
 
 	private static loadAudiosprites(scene: Phaser.Scene) {
-		for (const audio in Assets.Audiosprites) {
-			const asset = Assets.Audiosprites[audio]
+		for (const asset of assetClasses(Assets.Audiosprites)) {
+			if (typeof asset.getJSON !== 'function') {
+				continue
+			}
 			const soundName = asset.getName()
 			this.soundKeys.push(soundName)
-			if (!scene.cache.audio.exists(soundName)) {
-				const audioTypeArray: string[] = []
-				for (const option in asset) {
-					if (option !== 'getName' && option !== 'getJSON' && option !== 'Sprites') {
-						audioTypeArray.push(asset[option]())
-					}
-				}
-				scene.load.audioSprite(soundName, asset.getJSON(), this.orderAudioSourceArrayBasedOnSoundExtensionPreference(audioTypeArray))
+			if (scene.cache.audio.exists(soundName)) {
+				continue
 			}
+			const sources = this.orderAudioSourceArrayBasedOnSoundExtensionPreference(audioUrls(asset))
+			if (sources.length === 0) {
+				continue
+			}
+			scene.load.audioSprite(soundName, (asset.getJSON as () => string)(), sources)
 		}
 	}
 
 	private static loadBitmapFonts(scene: Phaser.Scene) {
-		for (const font in Assets.BitmapFonts) {
-			const asset = Assets.BitmapFonts[font]
+		for (const asset of assetClasses(Assets.BitmapFonts)) {
 			const name = asset.getName()
-			if (!scene.cache.bitmapFont.exists(name)) {
-				let imageOption = null
-				let dataOption = null
-				for (const option in asset) {
-					if (option === 'getXML' || option === 'getFNT') {
-						dataOption = option
-					} else if (option !== 'getName') {
-						imageOption = option
-					}
-				}
-				scene.load.bitmapFont(name, asset[imageOption](), asset[dataOption]())
+			const image = imageUrl(asset)
+			const data = bitmapFontDataUrl(asset)
+			if (!image || !data || scene.cache.bitmapFont.exists(name)) {
+				continue
 			}
+			scene.load.bitmapFont(name, image, data)
 		}
 	}
 
 	private static loadJSON(scene: Phaser.Scene) {
-		for (const json in Assets.JSON) {
-			const asset = Assets.JSON[json]
-			const name = asset.getName()
-			if (!scene.cache.json.exists(name)) {
-				scene.load.json(name, asset.getJSON())
+		for (const asset of assetClasses(Assets.JSON)) {
+			if (typeof asset.getJSON !== 'function') {
+				continue
 			}
+			const name = asset.getName()
+			if (scene.cache.json.exists(name)) {
+				continue
+			}
+			scene.load.json(name, (asset.getJSON as () => string)())
 		}
 	}
 
 	private static loadText(scene: Phaser.Scene) {
-		for (const text in Assets.Text) {
-			const asset = Assets.Text[text]
-			const name = asset.getName()
-			if (!scene.cache.text.exists(name)) {
-				scene.load.text(name, asset.getText())
+		for (const asset of assetClasses(Assets.Text)) {
+			if (typeof asset.getText !== 'function') {
+				continue
 			}
+			const name = asset.getName()
+			if (scene.cache.text.exists(name)) {
+				continue
+			}
+			scene.load.text(name, (asset.getText as () => string)())
 		}
 	}
 
 	private static loadScripts(scene: Phaser.Scene) {
-		for (const script in Assets.Scripts) {
-			const asset = Assets.Scripts[script]
-			scene.load.script(asset.getName(), asset.getJS())
+		for (const asset of assetClasses(Assets.Scripts)) {
+			if (typeof asset.getJS !== 'function') {
+				continue
+			}
+			scene.load.script(asset.getName(), (asset.getJS as () => string)())
 		}
 	}
 

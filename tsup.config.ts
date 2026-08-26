@@ -13,6 +13,7 @@ export default defineConfig((options) => ({
   globalName: 'Duel',
   target: 'es2020',
   outDir: 'public/dist',
+  publicPath: '/dist/',
   clean: true,
   minify: isDist && !options.watch,
   sourcemap: true,
@@ -23,6 +24,7 @@ export default defineConfig((options) => ({
     SOUND_EXTENSIONS_PREFERENCE: JSON.stringify(env.SOUND_EXTENSIONS_PREFERENCE),
   },
   esbuildOptions(options) {
+    options.publicPath = '/dist/'
     options.alias = { phaser: 'src/phaser-shim.ts', ...options.alias }
   },
   // Replaces webpack file-loader for assets

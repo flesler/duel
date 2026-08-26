@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { Images } from '../assets'
+import { BgWidth, BgHeight } from '../config'
 import * as utils from '../utils'
 
 const TINTS = [0xffffff, 0xffffff, 0xff9999, 0xff99ff]
@@ -9,6 +10,7 @@ export default class SceneBg extends Phaser.GameObjects.Sprite {
 		super(scene, 0, 0, Images.Background.getName())
 		scene.add.existing(this)
 		this.setOrigin(0, 0)
+		this.setDisplaySize(BgWidth, BgHeight)
 		this.setTint(utils.pick(TINTS))
 		this.scheduleThunder()
 	}

@@ -136,6 +136,6 @@ export class Char extends Phaser.Physics.Arcade.Sprite {
 
 	public setTile(tile: number): void {
 		this.tile = tile
-		this.x = (tile + 0.5) * config.TILE_WIDTH
+		this.x = config.SafeOffsetX + (tile + 0.5) * config.TILE_WIDTH
 	}
 }
