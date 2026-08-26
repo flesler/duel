@@ -77,10 +77,10 @@ for (const p of packs) {
 		...p,
 	} as Partial<Ruleset> & { name: string })
 	const matrix = sim.payoffMatrix(rules)
-	if (sim.dominated(matrix).some((d) => !d.startsWith('Heal '))) {
+	if (sim.dominated(matrix).some(d => !d.startsWith('Heal '))) {
 		continue
 	}
-	if (sim.dominated(matrix).some((d) => d.startsWith('Heal '))) {
+	if (sim.dominated(matrix).some(d => d.startsWith('Heal '))) {
 		continue
 	}
 	const mix = sim.nash(matrix).mix
@@ -93,7 +93,7 @@ for (const p of packs) {
 const ranked: Row[] = viable.map(({ rules, mix }) => {
 	const tri = sim.mixed('Tri', mix)
 	const aware = sim.hpAware(mix)
-	const vsPures = sim.ACTIONS.map((a) => sim.runSeries(tri, sim.pure(a), rules, MATCH_GAMES))
+	const vsPures = sim.ACTIONS.map(a => sim.runSeries(tri, sim.pure(a), rules, MATCH_GAMES))
 	const vsSelf = sim.runSeries(aware, sim.hpAware(mix), rules, MATCH_GAMES, 9)
 	const vsAggro = sim.runSeries(tri, sim.mixed('Aggro', [0.55, 0.25, 0.15, 0.05]), rules, MATCH_GAMES, 11)
 	const vsTurtle = sim.runSeries(tri, sim.mixed('Turtle', [0.2, 0.1, 0.55, 0.15]), rules, MATCH_GAMES, 13)
@@ -139,7 +139,7 @@ for (const c of ranked.slice(0, 22)) {
 }
 
 const best = ranked[0]
-const simple = ranked.filter((c) => c.knobs <= 2)[0]
+const simple = ranked.filter(c => c.knobs <= 2)[0]
 if (best) {
 	console.log('\nHighest fun score:', best.rules.name, `(${best.knobs} extra knobs)`)
 	console.log(`  S${best.rules.strike} P${best.rules.push} C${best.rules.counter} H${best.rules.heal} chip=${best.rules.chip} clash=${best.rules.clashChip} bonus=${best.rules.nextHitBonus}`)

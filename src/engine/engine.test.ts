@@ -1,4 +1,4 @@
-import { runTestCases, toModule } from 'src/util/utils.test'
+import { runTestCases, toModule } from 'src/test/utils.test'
 import { describe } from 'vitest'
 import { IDX, resolve } from './engine'
 import { funChip4 } from './rulesets'

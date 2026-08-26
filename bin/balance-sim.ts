@@ -37,11 +37,11 @@ function evaluate(rules: Ruleset) {
 	const awareSelf = sim.runSeries(aware, sim.hpAware(eq.mix), rules, GAMES, 23)
 	const awareTotal = awareSelf.usageA.reduce((a, b) => a + b, 0)
 	const awareHeal = awareTotal ? awareSelf.usageA[3] / awareTotal : 0
-	const worstFair = Math.min(...vsPures.map((v) => v.win))
+	const worstFair = Math.min(...vsPures.map(v => v.win))
 	const minTri = Math.min(eq.mix[0], eq.mix[1], eq.mix[2])
 	const turnScore = vsSelf.avgTurns >= 8 && vsSelf.avgTurns <= 16 ? 1 : Math.max(0, 1 - Math.abs(vsSelf.avgTurns - 12) / 12)
 	const score =
-		(dom.length ? (dom.every((d) => d.startsWith('Heal ')) ? -4 : -80) : 0) +
+		(dom.length ? (dom.every(d => d.startsWith('Heal ')) ? -4 : -80) : 0) +
 		minTri * 80 +
 		eq.mix[3] * 12 +
 		sim.entropy(eq.mix) * 4 -
@@ -63,15 +63,15 @@ function printEval(e: ReturnType<typeof evaluate>) {
 		console.log(`DOMINATED: ${e.dom.join('; ')}`)
 	}
 	console.log('Payoff (row ΔHP − col ΔHP):')
-	console.log(['     ', ...sim.ACTIONS.map((a) => a.padStart(8))].join(''))
+	console.log(['     ', ...sim.ACTIONS.map(a => a.padStart(8))].join(''))
 	for (let i = 0; i < 4; i++) {
-		console.log(sim.ACTIONS[i].padEnd(6) + e.matrix[i].map((v) => String(v).padStart(8)).join(''))
+		console.log(sim.ACTIONS[i].padEnd(6) + e.matrix[i].map(v => String(v).padStart(8)).join(''))
 	}
 	console.log(
 		`Eq vs Eq: A ${pct(fairWin(e.vsSelf))}  draws ${pct(e.vsSelf.draws / e.vsSelf.games)}  turns ${e.vsSelf.avgTurns.toFixed(1)}  KO ${pct(e.vsSelf.koRate)}  dead ${pct(e.vsSelf.deadRoundRate)}`,
 	)
-	console.log('Eq vs pure (fair): ' + e.vsPures.map((v) => `${v.action} ${pct(v.win)}`).join('  '))
-	console.log('Eq vs styles: ' + e.vsStyles.map((v) => `${v.name} ${pct(fairWin(v.series))}`).join('  '))
+	console.log('Eq vs pure (fair): ' + e.vsPures.map(v => `${v.action} ${pct(v.win)}`).join('  '))
+	console.log('Eq vs styles: ' + e.vsStyles.map(v => `${v.name} ${pct(fairWin(v.series))}`).join('  '))
 	console.log(
 		`HP-aware vs self: turns ${e.awareSelf.avgTurns.toFixed(1)}  KO ${pct(e.awareSelf.koRate)}  dead ${pct(e.awareSelf.deadRoundRate)}  Heal use ${pct(e.awareHeal)}`,
 	)

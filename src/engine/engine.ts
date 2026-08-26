@@ -191,7 +191,7 @@ function solveLinear(matrix: number[][], vec: number[]): number[] | null {
 			}
 		}
 	}
-	return a.map((row) => row[n])
+	return a.map(row => row[n])
 }
 
 function expected(row: number[], mix: number[]): number {
@@ -237,10 +237,10 @@ export function nash(matrix: number[][]): Nash {
 		}
 		b[k - 1] = 1
 		const pS = solveLinear(M, b)
-		if (!pS || pS.some((p) => p < -eps)) {
+		if (!pS || pS.some(p => p < -eps)) {
 			continue
 		}
-		if (pS.some((p) => p < eps)) {
+		if (pS.some(p => p < eps)) {
 			continue
 		}
 		const mix = Array(n).fill(0)
@@ -267,7 +267,7 @@ export function nash(matrix: number[][]): Nash {
 		? maxMinBlend(found)
 		: fictitiousPlay(matrix)
 	result.exploitability = exploitability(matrix, result.mix)
-	result.support = result.mix.map((p, i) => (p > 0.02 ? i : -1)).filter((i) => i >= 0)
+	result.support = result.mix.map((p, i) => (p > 0.02 ? i : -1)).filter(i => i >= 0)
 	return result
 }
 
@@ -303,7 +303,7 @@ function fictitiousPlay(matrix: number[][], iterations = 30_000): Nash {
 	let last = 0
 	for (let t = 0; t < iterations; t++) {
 		counts[last]++
-		const emp = counts.map((c) => c / (t + 1))
+		const emp = counts.map(c => c / (t + 1))
 		let best = 0
 		let bestVal = -Infinity
 		for (let i = 0; i < n; i++) {
@@ -315,14 +315,14 @@ function fictitiousPlay(matrix: number[][], iterations = 30_000): Nash {
 		}
 		last = best
 	}
-	const mix = counts.map((c) => c / iterations)
+	const mix = counts.map(c => c / iterations)
 	let value = 0
 	for (let i = 0; i < n; i++) {
 		for (let j = 0; j < n; j++) {
 			value += mix[i] * matrix[i][j] * mix[j]
 		}
 	}
-	const support = mix.map((p, i) => (p > 0.02 ? i : -1)).filter((i) => i >= 0)
+	const support = mix.map((p, i) => (p > 0.02 ? i : -1)).filter(i => i >= 0)
 	return { mix, value, support, exploitability: 0 }
 }
 
@@ -425,7 +425,7 @@ export function mixed(name: string, probs: number[]): Strategy {
 function lerpMix(a: number[], b: number[], t: number): number[] {
 	const out = a.map((p, i) => p * (1 - t) + b[i] * t)
 	const s = out.reduce((x, y) => x + y, 0)
-	return out.map((p) => p / s)
+	return out.map(p => p / s)
 }
 
 /** Last-move counter. Heal only vs turtles, and only when not already full. */

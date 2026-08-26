@@ -89,7 +89,7 @@ for (const r of rows) {
 }
 
 const best = rows[0]
-const max2 = rows.find((r) => r.rules.name === 'lunge-strike-max2')
+const max2 = rows.find(r => r.rules.name === 'lunge-strike-max2')
 console.log('\nBest vs run-away loops:', best.rules.name)
 if (max2) {
 	console.log(

@@ -160,7 +160,7 @@ const candidates: Ruleset[] = [
 	}),
 ]
 
-export const funChip4 = candidates.find((r) => r.name === 'fun-chip4')!
+export const funChip4 = candidates.find(r => r.name === 'fun-chip4')!
 
 const rulesets = { candidates }
 

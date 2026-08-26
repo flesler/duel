@@ -74,7 +74,7 @@ for (const chip of CHIPS) {
 						chip,
 					})
 					const matrix = sim.payoffMatrix(rules)
-					const hard = sim.dominated(matrix).filter((d) => !d.startsWith('Heal '))
+					const hard = sim.dominated(matrix).filter(d => !d.startsWith('Heal '))
 					if (hard.length) {
 						continue
 					}
@@ -106,8 +106,8 @@ const shortlist = [...byKey.values()]
 const ranked: Candidate[] = shortlist.map(({ rules, mix }) => {
 	const tri = sim.mixed('Tri', mix)
 	const aware = sim.hpAware(mix)
-	const vsPures = sim.ACTIONS.map((a) => sim.runSeries(tri, sim.pure(a), rules, MATCH_GAMES))
-	const awarePures = sim.ACTIONS.map((a) => sim.runSeries(aware, sim.pure(a), rules, MATCH_GAMES, 3))
+	const vsPures = sim.ACTIONS.map(a => sim.runSeries(tri, sim.pure(a), rules, MATCH_GAMES))
+	const awarePures = sim.ACTIONS.map(a => sim.runSeries(aware, sim.pure(a), rules, MATCH_GAMES, 3))
 	const vsSelf = sim.runSeries(aware, sim.hpAware(mix), rules, MATCH_GAMES, 9)
 	const vsBlock = awarePures[2]
 	const vsStrike = awarePures[0]

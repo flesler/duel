@@ -1,9 +1,14 @@
+const importNewlinesPlugin = require('eslint-plugin-import-newlines')
+const unusedImportsPlugin = require('eslint-plugin-unused-imports')
 const eslintJs = require('@eslint/js')
 const tsParser = require('@typescript-eslint/parser')
 const tsPlugin = require('@typescript-eslint/eslint-plugin')
 const stylisticPlugin = require('@stylistic/eslint-plugin')
 
 module.exports = [
+	{
+		ignores: ['node_modules', 'dist', 'public', '**/*.tsbuildinfo'],
+	},
 	eslintJs.configs.recommended,
 	{
 		files: ['{src,bin}/**/*.ts'],
@@ -34,6 +39,8 @@ module.exports = [
 		plugins: {
 			'@typescript-eslint': tsPlugin,
 			'stylistic': stylisticPlugin,
+			'import-newlines': importNewlinesPlugin,
+			'unused-imports': unusedImportsPlugin,
 		},
 		rules: {
 			...tsPlugin.configs.recommended.rules,
@@ -48,6 +55,7 @@ module.exports = [
 				multiline: { delimiter: 'semi', requireLast: false },
 				singleline: { delimiter: 'semi', requireLast: false },
 			}],
+			'@typescript-eslint/consistent-type-imports': 'error',
 			'@typescript-eslint/no-namespace': 'off',
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unsafe-function-type': 'off',
@@ -55,12 +63,22 @@ module.exports = [
 			'@typescript-eslint/no-inferrable-types': 'off',
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/no-empty-function': 'off',
-			'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+			'@typescript-eslint/no-unused-vars': ['error', {
+				argsIgnorePattern: '^_',
+				varsIgnorePattern: '^_',
+				ignoreRestSiblings: true,
+			}],
+			'unused-imports/no-unused-imports': 'warn',
+			'import-newlines/enforce': ['error', { items: Infinity, semi: false }],
+			'object-curly-newline': ['error', { consistent: true }],
+			'arrow-parens': ['error', 'as-needed', { requireForBlockBody: true }],
 			'no-undef': 'off',
 			'no-redeclare': 'off',
+			'no-unused-vars': 'off',
 			'no-empty': 'off',
 			'no-prototype-builtins': 'off',
 			'no-console': 'off',
+			'no-useless-assignment': 'off',
 		},
 	},
 ]

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Skip during rebase operations
+if [ -n "$GIT_REFLOG_ACTION" ] && [ "$GIT_REFLOG_ACTION" = "rebase" ]; then
+  exit 0
+fi
+if [ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ]; then
+  exit 0
+fi
+
+# Check for package.json changes and update dependencies
+if git diff --name-only @{u}.. | grep -q '^package.json$'; then
+  echo "package.json changed, installing dependencies..."
+  if ! command -v npm >/dev/null 2>&1 && [ -s "$HOME/.nvm/nvm.sh" ]; then
+    . "$HOME/.nvm/nvm.sh"
+    nvm use
+  fi
+  npm install --frozen-lockfile
+fi

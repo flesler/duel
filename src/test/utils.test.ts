@@ -24,7 +24,7 @@ export type FnTestCase<Fn extends (...args: any[]) => any> =
 export type FnSingleTestCase<Fn extends (...args: any[]) => any> =
 	TestCase<Parameters<Fn>[0], ReturnType<Fn>>
 
-/** Run data-driven cases against a function, cases type inferred from `fn` when inlined. */
+/** Run data-driven cases against a function; case types inferred from `fn`. */
 export const runTestCases = <Fn extends (...args: any[]) => any>(fn: Fn, cases: FnTestCase<Fn>[]): void => {
 	cases.forEach((testCase) => {
 		it(`should handle ${testCase.desc}`, () => {

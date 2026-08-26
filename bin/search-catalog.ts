@@ -27,7 +27,7 @@ for (const c of catalogs) {
 		return series(mix, pure, c, GAMES, 2 + j)
 	})
 	const vsSelf = series(mix, mix, c, GAMES, 99)
-	const worstPure = Math.min(...vsPures.map((s) => s.fair))
+	const worstPure = Math.min(...vsPures.map(s => s.fair))
 	console.log(`=== ${c.name} ===`)
 	console.log(c.note)
 	for (const line of beatsSummary(c)) {

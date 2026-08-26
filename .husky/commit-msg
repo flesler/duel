@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Keep only the first line of the commit message and remove trailing dot
+COMMIT_MSG_FILE="$1"
+FIRST_LINE=$(head -n 1 "$COMMIT_MSG_FILE" | sed 's/\.$//')
+echo "$FIRST_LINE" > "$COMMIT_MSG_FILE"

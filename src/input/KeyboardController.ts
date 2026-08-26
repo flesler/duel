@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import type { Action } from '../engine/engine'
-import TurnController from './Controller'
+import type TurnController from './Controller'
 
 const { KeyCodes } = Phaser.Input.Keyboard
 

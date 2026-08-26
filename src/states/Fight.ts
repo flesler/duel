@@ -1,20 +1,11 @@
 import Phaser from 'phaser'
 import KeyboardController from '../input/KeyboardController'
-import TurnController from '../input/Controller'
+import type TurnController from '../input/Controller'
 import { Char, Anim } from '../entities/Char'
 import SceneBg from '../entities/Scene'
 import * as config from '../config'
 import * as selection from './selection'
-import {
-	createMatch,
-	submitPick,
-	bothPicked,
-	resolveTurn,
-	beginNextTurn,
-	DISPLAY,
-	funChip4,
-	type DuelMatch,
-} from '../engine'
+import { createMatch, submitPick, bothPicked, resolveTurn, beginNextTurn, DISPLAY, funChip4, type DuelMatch } from '../engine'
 
 type Flow = 'countdown' | 'pick' | 'reveal' | 'over'
 

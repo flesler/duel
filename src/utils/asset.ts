@@ -173,7 +173,7 @@ export class Loader {
 	}
 
 	public static waitForSoundDecoding(scene: Phaser.Scene, onComplete: () => void) {
-		const pending = this.soundKeys.filter((key) => !scene.cache.audio.exists(key))
+		const pending = this.soundKeys.filter(key => !scene.cache.audio.exists(key))
 		if (pending.length === 0) {
 			onComplete()
 			return

@@ -42,7 +42,7 @@ function bothHeal(n = HEAL): Hp {
 }
 
 function table(moves: string[], cell: (a: string, b: string) => Hp): Hp[][] {
-	return moves.map((a) => moves.map((b) => cell(a, b)))
+	return moves.map(a => moves.map(b => cell(a, b)))
 }
 
 function rel(h: Hp): number {
@@ -196,7 +196,7 @@ const catalogs: Catalog[] = [
 ]
 
 export function relativeMatrix(c: Catalog): number[][] {
-	return c.hp.map((row) => row.map(rel))
+	return c.hp.map(row => row.map(rel))
 }
 
 export function beatsSummary(c: Catalog): string[] {
