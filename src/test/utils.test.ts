@@ -21,6 +21,11 @@ export type FnTestCase<Fn extends (...args: any[]) => any> =
 		? TestCase<SingleArg, ReturnType<Fn>>
 		: TestCase<Parameters<Fn>, ReturnType<Fn>>
 
+export type FnMatchTestCase<Fn extends (...args: any[]) => any> =
+	Parameters<Fn> extends [infer SingleArg] | [infer SingleArg | undefined]
+		? TestCase<SingleArg, Partial<ReturnType<Fn>>>
+		: TestCase<Parameters<Fn>, Partial<ReturnType<Fn>>>
+
 export type FnSingleTestCase<Fn extends (...args: any[]) => any> =
 	TestCase<Parameters<Fn>[0], ReturnType<Fn>>
 
@@ -37,7 +42,20 @@ export const runTestCases = <Fn extends (...args: any[]) => any>(fn: Fn, cases: 
 	})
 }
 
-const invokeFn = <Fn extends (...args: any[]) => any>(fn: Fn, testCase: FnTestCase<Fn>): ReturnType<Fn> => {
+/** Like runTestCases but asserts with toMatchObject; expected is Partial<return>. */
+export const matchTestCases = <Fn extends (...args: any[]) => any>(fn: Fn, cases: FnMatchTestCase<Fn>[]): void => {
+	cases.forEach((testCase) => {
+		it(`should match ${testCase.desc}`, () => {
+			if ('throws' in testCase) {
+				expect(() => invokeFn(fn, testCase)).toThrow(testCase.throws)
+			} else {
+				expect(invokeFn(fn, testCase)).toMatchObject(testCase.expected)
+			}
+		})
+	})
+}
+
+const invokeFn = <Fn extends (...args: any[]) => any>(fn: Fn, testCase: { input: FnTestCase<Fn>['input'] }): ReturnType<Fn> => {
 	const { input } = testCase
 	if (fn.length > 1 && Array.isArray(input)) {
 		return fn(...(input as Parameters<Fn>))

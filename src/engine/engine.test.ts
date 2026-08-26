@@ -1,4 +1,4 @@
-import { runTestCases, toModule } from 'src/test/utils.test'
+import { matchTestCases, runTestCases, toModule } from 'src/test/utils.test'
 import { describe } from 'vitest'
 import { IDX, resolve } from './engine'
 import { funChip4 } from './rulesets'
@@ -20,6 +20,14 @@ describe(toModule(__filename), () => {
 				desc: 'same Strike is a neutral clash',
 				input: [IDX.Strike, IDX.Strike, funChip4],
 				expected: { dA: 0, dB: 0, stunA: false, stunB: false, hitA: false, hitB: false },
+			},
+		])
+
+		matchTestCases(resolve, [
+			{
+				desc: 'Strike chip damage on Heal',
+				input: [IDX.Strike, IDX.Heal, funChip4],
+				expected: { dB: -18 },
 			},
 		])
 	})
