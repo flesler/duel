@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
-import * as config from '../config'
 import * as utils from '../utils'
+import type { CharPose } from '../view/poses'
 
 const DEFAULT_FPS = 8
 const SCALE = 1.7
@@ -28,7 +28,7 @@ export const Anim = {
 	power: 'power',
 } as const
 
-export type AnimName = typeof Anim[keyof typeof Anim]
+export type AnimName = typeof Anim[keyof typeof Anim] | CharPose
 
 const ANIMS: Record<AnimName, AnimDef> = {
 	idle: { frames: [1] },
@@ -50,7 +50,6 @@ export class Char extends Phaser.Physics.Arcade.Sprite {
 	public health = 100
 	public maxHealth = 100
 	public tile = 0
-	public facing: CharDirection
 
 	private textureKey: string
 	private stateName: AnimName = Anim.idle
@@ -59,7 +58,6 @@ export class Char extends Phaser.Physics.Arcade.Sprite {
 		super(scene, 0, 0, textureKey)
 		scene.add.existing(this)
 		this.textureKey = textureKey
-		this.facing = direction
 		this.setOrigin(0.5, 1)
 		this.setScale(direction * SCALE, SCALE)
 
@@ -80,14 +78,29 @@ export class Char extends Phaser.Physics.Arcade.Sprite {
 	}
 
 	public get direction(): CharDirection {
-		return this.facing
+		return this.scaleX < 0 ? -1 : 1
 	}
 
 	public set direction(value: CharDirection) {
-		if (this.facing !== value) {
-			this.facing = value
+		if (this.direction !== value) {
 			this.setScale(value * SCALE, SCALE)
 		}
+	}
+
+	public applyFighterView(v: {
+		x: number;
+		y: number;
+		facing: CharDirection;
+		hp: number;
+		maxHp: number;
+		pose: CharPose;
+		tile: number
+	}): void {
+		this.tile = v.tile
+		this.setPosition(v.x, v.y)
+		this.direction = v.facing
+		this.setHp(v.hp, v.maxHp)
+		this.setCharState(v.pose, true)
 	}
 
 	public get isDead(): boolean {
@@ -117,25 +130,5 @@ export class Char extends Phaser.Physics.Arcade.Sprite {
 		} else {
 			this.play(`${this.textureKey}-${value}`, true)
 		}
-	}
-
-	public animStateFor(action: string): AnimName {
-		switch (action) {
-			case 'Strike':
-				return Anim.attack
-			case 'Push':
-				return Anim.charge
-			case 'Block':
-				return Anim.block
-			case 'Heal':
-				return Anim.heal
-			default:
-				return Anim.idle
-		}
-	}
-
-	public setTile(tile: number): void {
-		this.tile = tile
-		this.x = config.SafeOffsetX + (tile + 0.5) * config.TILE_WIDTH
 	}
 }

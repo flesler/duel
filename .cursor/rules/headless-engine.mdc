@@ -5,23 +5,22 @@ alwaysApply: true
 
 # Headless engine, dumb UI
 
-All **rules and execution** live in a headless module with **no Phaser, DOM, or rendering**. The browser client is a **view**: it shows state and sends player intents. Never verify balance or correctness by playing visually.
+All **rules and execution** live in headless modules with **no Phaser, DOM, or rendering**. The browser client is a **view**: it shows state and sends player intents. Never verify balance or correctness by playing visually.
 
 ## Where logic lives
 
 | Layer | Owns | Does not own |
 |-------|------|----------------|
 | **Engine** (`src/engine/`; `bin/sim/` re-exports for sim scripts) | Move tables, damage, HP, distance, turn order, win/lose, match state | Sprites, tweens, audio, input keys |
-| **UI** (`src/states/`, `src/entities/`) | Layout, animations, HUD, input → intent | Damage math, “what beats what”, timeouts |
+| **View** (`src/view/`) | Fight flow, tiles, x/y, poses, HUD text/bars, layout | Phaser, DOM, damage math |
+| **UI** (`src/states/`, `src/entities/`) | Sprites, tweens, audio, input → intent | Rules, positions, “what beats what” |
 
 One source of truth. `npm run sim` and the game must call the **same** `resolve` / `playMatch` (or equivalent) — no parallel rule copies in `Fight.ts`.
 
 ## Flow
 
 ```
-input → intent (e.g. pick Strike) → engine.step(state, intents) → new state
-                                              ↓
-                                    UI reads state, plays FX
+input → intent → view session (fightSession) → engine (match) → projectFightView → Phaser sprites
 ```
 
 ## Forbidden in UI code
@@ -29,15 +28,17 @@ input → intent (e.g. pick Strike) → engine.step(state, intents) → new stat
 - Payoff / matchup tables inlined in Phaser states
 - `if (action === 'Strike') hp -= 18` (or reading damage from `config` and applying it locally)
 - Win conditions or turn caps implemented only in `Fight.ts`
-- “Looks right in the browser” as the only test for a rule change
+- Tile/x/y/HUD layout computed only in Phaser (use `src/view/`)
+- “Looks right in the browser” as the only test for a rule or layout change
 
 ## How to verify
 
-- Rule or number change → `npm run sim` (and related `sim:*` scripts) or a focused script against the engine
-- UI change → `test:types`, lint, optional manual check for **feel** only (animation timing, readability) — not whether Parry beats Strike
+- Rule or number change → `npm run sim` (and related `sim:*` scripts) or vitest against `src/engine/`
+- View/layout/poses → vitest against `src/view/`
+- Phaser wiring → `test:types`, lint; plan B → `npm run smoke:browser` (see `.claude/skills/browser-smoke/`)
 
 ## When adding features
 
-1. Implement and test in the headless engine first.
-2. Expose plain data (HP, distance, last outcome, winner).
-3. Wire Phaser to display that state; animations may lag or embellish but must not change outcomes.
+1. Implement and test in the headless engine first (combat) or view layer (presentation).
+2. Expose plain data (HP, tiles, poses, HUD strings).
+3. Wire Phaser to `applyFighterView` / `projectFightView`; animations may lag or embellish but must not change outcomes.

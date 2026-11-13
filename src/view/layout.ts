@@ -1,15 +1,15 @@
 import { BgWidth, BgHeight, GameWidth, GameHeight, SafeOffsetX, SafeOffsetY, TILE_WIDTH } from '../config'
 
 export type FightLayout = {
-	bgWidth: number
-	bgHeight: number
-	safeX: number
-	safeY: number
-	safeWidth: number
-	safeHeight: number
-	tileWidth: number
-	margin: number
-	hudBarWidth: number
+	bgWidth: number;
+	bgHeight: number;
+	safeX: number;
+	safeY: number;
+	safeWidth: number;
+	safeHeight: number;
+	tileWidth: number;
+	margin: number;
+	hudBarWidth: number;
 	hudBarHeight: number
 }
 
@@ -45,4 +45,8 @@ export function hudBarX(layout: FightLayout, player: 1 | 2): number {
 		return layout.safeX + layout.margin
 	}
 	return layout.safeX + layout.safeWidth - layout.margin - layout.hudBarWidth
+}
+
+export function tileX(tile: number, layout: FightLayout): number {
+	return layout.safeX + (tile + 0.5) * layout.tileWidth
 }

@@ -1,27 +1,23 @@
 import Phaser from 'phaser'
 import KeyboardController from '../input/KeyboardController'
 import type TurnController from '../input/Controller'
-import { Char, Anim } from '../entities/Char'
+import { Char } from '../entities/Char'
 import SceneBg from '../entities/Scene'
-import * as config from '../config'
 import * as selection from './selection'
-import { createMatch, submitPick, bothPicked, resolveTurn, beginNextTurn, DISPLAY, funChip4, type DuelMatch } from '../engine'
-import { fightLayout, hudBarX, safeBottomY, safeCenterX } from '../utils/fightLayout'
-
-type Flow = 'countdown' | 'pick' | 'reveal' | 'over'
+import { funChip4 } from '../engine'
+import { advanceCountdown, applyPick, createFightSession, fightLayout, finishReveal, outcomeFxKind, projectFightView, revealTurn, shouldReveal, safeBottomY, safeCenterX, type FightSession } from '../view'
 
 export default class Fight extends Phaser.Scene {
 	private player1: Char
 	private player2: Char
 	private controller1: TurnController
 	private controller2: TurnController
-	private match: DuelMatch
-	private flow: Flow = 'countdown'
+	private session: FightSession
 	private banner: Phaser.GameObjects.Text
 	private turnLabel: Phaser.GameObjects.Text
 	private pickLabel1: Phaser.GameObjects.Text
 	private pickLabel2: Phaser.GameObjects.Text
-	private bars: { g: Phaser.GameObjects.Graphics; x: number; y: number; w: number; h: number; owner: Char }[] = []
+	private bars: { g: Phaser.GameObjects.Graphics; side: 'A' | 'B' }[] = []
 	private layout = fightLayout()
 
 	constructor() {
@@ -31,76 +27,59 @@ export default class Fight extends Phaser.Scene {
 	create() {
 		this.add.existing(new SceneBg(this))
 
-		this.match = createMatch(funChip4)
-		this.player1 = this.createPlayer(1, selection.characterOf(1))
-		this.player2 = this.createPlayer(-1, selection.characterOf(2))
+		this.session = createFightSession(funChip4, {
+			spriteA: selection.characterOf(1),
+			spriteB: selection.characterOf(2),
+		})
+		this.player1 = new Char(this, this.session.fighters.A.sprite, 1)
+		this.player2 = new Char(this, this.session.fighters.B.sprite, -1)
 		this.controller1 = KeyboardController.createPlayer1(this)
 		this.controller2 = KeyboardController.createPlayer2(this)
 
-		const { safeX, safeY, margin } = this.layout
+		const { safeX, safeY, margin, safeWidth } = this.layout
 		const cx = safeCenterX(this.layout)
 
 		this.banner = this.add.text(cx, safeY + 50, '', { fontFamily: 'monospace', fontSize: '28px', color: '#ffffff' }).setOrigin(0.5).setVisible(false)
 		this.turnLabel = this.add.text(cx, safeY + 82, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cccccc' }).setOrigin(0.5)
 		this.pickLabel1 = this.add.text(safeX + margin, safeY + 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' })
-		this.pickLabel2 = this.add.text(safeX + this.layout.safeWidth - margin, safeY + 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' }).setOrigin(1, 0)
+		this.pickLabel2 = this.add.text(safeX + safeWidth - margin, safeY + 64, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' }).setOrigin(1, 0)
 
 		this.add.text(safeX + margin, safeBottomY(this.layout, 70), 'P1: SPACE Strike  D Push  W Parry  S Heal', { fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa' })
-		this.add.text(safeX + this.layout.safeWidth - margin, safeBottomY(this.layout, 70), 'P2: ENTER Strike  → Push  ↑ Parry  ↓ Heal', { fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa' }).setOrigin(1, 0)
+		this.add.text(safeX + safeWidth - margin, safeBottomY(this.layout, 70), 'P2: ENTER Strike  → Push  ↑ Parry  ↓ Heal', { fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa' }).setOrigin(1, 0)
 
-		this.createHUD()
-		this.syncHp()
-		this.updateTurnHud()
+		this.bars = [
+			{ g: this.add.graphics(), side: 'A' },
+			{ g: this.add.graphics(), side: 'B' },
+		]
+		this.add.text(safeX + margin, safeY + 42, 'P1', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' })
+		this.add.text(safeX + safeWidth - margin, safeY + 42, 'P2', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' }).setOrigin(1, 0)
+
+		this.applyView()
 		this.startCountdown()
 	}
 
 	update() {
-		if (this.flow === 'over') {
+		if (this.session.flow === 'over') {
 			if (Phaser.Input.Keyboard.JustDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R))) {
 				selection.reset()
 				this.scene.start('Select')
 			}
+			this.applyView()
 			return
 		}
-		if (this.flow === 'pick') {
+		if (this.session.flow === 'pick') {
 			this.pollPicks()
 		}
-		this.drawBars()
-	}
-
-	private createHUD() {
-		const { safeX, safeY, margin, hudBarWidth, hudBarHeight } = this.layout
-		this.bars = [this.player1, this.player2].map((p, i) => {
-			const g = this.add.graphics()
-			const player = (i === 0 ? 1 : 2) as 1 | 2
-			return { g, x: hudBarX(this.layout, player), y: safeY + margin, w: hudBarWidth, h: hudBarHeight, owner: p }
-		})
-		this.add.text(safeX + margin, safeY + 42, 'P1', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' })
-		this.add.text(safeX + this.layout.safeWidth - margin, safeY + 42, 'P2', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff' }).setOrigin(1, 0)
-	}
-
-	private createPlayer(direction: 1 | -1, asset: string): Char {
-		const player = new Char(this, asset, direction)
-		player.setTile(direction === 1 ? 2 : config.TILES - 3)
-		player.y = safeBottomY(this.layout, 30)
-		return player
+		this.applyView()
 	}
 
 	private startCountdown() {
-		this.flow = 'countdown'
-		let step = 3
 		const tick = () => {
-			if (step > 1) {
-				this.banner.setText(String(step)).setVisible(true)
-				step--
-				this.time.delayedCall(800, tick)
-			} else {
-				this.banner.setText('FIGHT!').setVisible(true)
-				this.time.delayedCall(500, () => {
-					this.banner.setVisible(false)
-					this.flow = 'pick'
-					this.updateTurnHud()
-				})
+			this.session = advanceCountdown(this.session)
+			this.applyView()
+			if (this.session.flow === 'countdown') {
+				const delay = this.session.countdown === 'fight' ? 500 : 800
+				this.time.delayedCall(delay, tick)
 			}
 		}
 		this.time.delayedCall(300, tick)
@@ -110,117 +89,55 @@ export default class Fight extends Phaser.Scene {
 		const p1 = this.controller1.pollPick()
 		const p2 = this.controller2.pollPick()
 		if (p1) {
-			this.match = submitPick(this.match, 'A', p1)
+			this.session = applyPick(this.session, 'A', p1)
 		}
 		if (p2) {
-			this.match = submitPick(this.match, 'B', p2)
+			this.session = applyPick(this.session, 'B', p2)
 		}
-		this.updatePickHud()
-		if (bothPicked(this.match)) {
+		if (shouldReveal(this.session)) {
 			this.revealTurn()
 		}
 	}
 
-	private updatePickHud() {
-		this.pickLabel1.setText(this.match.pickA ? `P1: ${DISPLAY[this.match.pickA]} ✓` : 'P1: pick…')
-		this.pickLabel2.setText(this.match.pickB ? `P2: ${DISPLAY[this.match.pickB]} ✓` : 'P2: pick…')
-		if (this.match.pickA && !this.match.pickB) {
-			this.banner.setText('Waiting for P2…').setVisible(true)
-		} else if (!this.match.pickA && this.match.pickB) {
-			this.banner.setText('Waiting for P1…').setVisible(true)
-		} else if (!this.match.pickA && !this.match.pickB) {
-			this.banner.setVisible(false)
-		}
-	}
-
 	private revealTurn() {
-		this.flow = 'reveal'
-		this.banner.setVisible(false)
-		this.match = resolveTurn(this.match)
-		this.syncHp()
-
-		const { a, b } = this.match.lastPicks!
-		this.pickLabel1.setText(`P1: ${DISPLAY[a]}`)
-		this.pickLabel2.setText(`P2: ${DISPLAY[b]}`)
-
-		this.player1.face(this.player2.x)
-		this.player2.face(this.player1.x)
-		this.player1.setCharState(this.player1.animStateFor(a), true)
-		this.player2.setCharState(this.player2.animStateFor(b), true)
-
+		this.session = revealTurn(this.session)
+		this.applyView()
 		this.playOutcomeFx()
-		this.time.delayedCall(1200, () => this.afterReveal())
+		this.time.delayedCall(1200, () => {
+			this.session = finishReveal(this.session)
+			this.applyView()
+		})
 	}
 
 	private playOutcomeFx() {
-		const o = this.match.lastOutcome!
-		if (o.hitA || o.hitB) {
+		const kind = outcomeFxKind(this.session)
+		if (kind === 'hit') {
 			this.cameras.main.shake(200, 0.01)
-			this.playSound('hit')
-		} else if (o.dA > 0 || o.dB > 0) {
-			this.playSound('power')
-		} else {
-			this.playSound('block')
 		}
-		if (o.hitB) {
-			this.player2.setCharState(Anim.hit, true)
-		}
-		if (o.hitA) {
-			this.player1.setCharState(Anim.hit, true)
+		if (kind) {
+			this.playSound(kind === 'power' ? 'power' : kind)
 		}
 	}
 
-	private afterReveal() {
-		if (this.match.winner) {
-			this.endMatch()
-			return
-		}
-		this.match = beginNextTurn(this.match)
-		this.flow = 'pick'
-		this.pickLabel1.setText('')
-		this.pickLabel2.setText('')
-		this.player1.setCharState(Anim.idle)
-		this.player2.setCharState(Anim.idle)
-		this.updateTurnHud()
-	}
+	private applyView() {
+		const view = projectFightView(this.session, this.layout)
+		this.player1.applyFighterView(view.fighters.A)
+		this.player2.applyFighterView(view.fighters.B)
 
-	private endMatch() {
-		this.flow = 'over'
-		let winner: Char | null = null
-		if (this.match.winner === 'A') {
-			winner = this.player1
-		} else if (this.match.winner === 'B') {
-			winner = this.player2
-		}
-		if (winner) {
-			winner.setCharState(Anim.win)
-			const name = winner === this.player1 ? 'Player 1' : 'Player 2'
-			const ko = this.match.hpA <= 0 || this.match.hpB <= 0
-			this.banner.setText(ko ? `${name} wins! Press R to rematch` : `Time! ${name} wins on health. Press R to rematch`).setVisible(true)
-		} else {
-			this.banner.setText("Time! It's a draw. Press R to rematch").setVisible(true)
-		}
-	}
+		this.banner.setText(view.hud.banner.text).setVisible(view.hud.banner.visible)
+		this.turnLabel.setText(view.hud.turnLabel)
+		this.pickLabel1.setText(view.hud.pickA)
+		this.pickLabel2.setText(view.hud.pickB)
 
-	private syncHp() {
-		const max = this.match.rules.hp
-		this.player1.setHp(this.match.hpA, max)
-		this.player2.setHp(this.match.hpB, max)
-	}
-
-	private updateTurnHud() {
-		this.turnLabel.setText(`Turn ${this.match.turn} / ${this.match.rules.maxTurns}`)
-	}
-
-	private drawBars() {
-		for (const { g, x, y, w, h, owner } of this.bars) {
-			const ratio = Math.max(0, owner.health / owner.maxHealth)
+		for (const bar of view.hud.hpBars) {
+			const slot = this.bars.find(b => b.side === bar.side)!
+			const { g } = slot
 			g.clear()
 			g.lineStyle(2, 0xffffff)
-			g.strokeRect(x, y, w, h)
-			if (ratio > 0) {
+			g.strokeRect(bar.x, bar.y, bar.w, bar.h)
+			if (bar.ratio > 0) {
 				g.fillStyle(0x33cc33)
-				g.fillRect(x + 2, y + 2, (w - 4) * ratio, h - 4)
+				g.fillRect(bar.x + 2, bar.y + 2, (bar.w - 4) * bar.ratio, bar.h - 4)
 			}
 		}
 	}

@@ -34,6 +34,7 @@
     "test:unit:min": "MINIMAL=1 npm run test:unit",
     "test:unit:verbose": "VERBOSE=1 npm run test:unit",
     "test:watch": "npm run vitest -- --watch",
+    "smoke:browser": "tsx ./bin/smoke-browser.ts",
     "prepare": "[ \"$CI\" != \"true\" ] && [ -d node_modules/husky ] && husky || true",
     "changelog": "auto-changelog --commit-limit 100 --hide-credit"
   },
@@ -47,8 +48,10 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^24.13.3",
     "@types/shelljs": "^0.10.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
+    "auto-changelog": "^2.6.0",
     "commander": "^11.1.0",
     "concurrently": "^9.2.1",
     "echo-cli": "^1.0.8",
@@ -64,7 +67,7 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.11",
     "webfontloader": "^1.6.28",
-    "auto-changelog": "^2.6.0"
+    "ws": "^8.21.3"
   },
   "dependencies": {
     "phaser": "^4.2.1"
